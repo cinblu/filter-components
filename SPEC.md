@@ -273,3 +273,17 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
     arrow keys still move the caret while typing.
 22. Opening another filter's editor from the menu discards the previous editor's unapplied
     changes. Choosing the already-selected single-select option just closes.
+23. URL sync uses `history.replaceState`, so filter changes don't add Back-button entries. It
+    uses the plain History API (works with any router; Next.js stays in sync). Params that
+    aren't filters are kept; filter params follow them, in the order filters were applied.
+24. In the URL, each list value is percent-encoded on its own, so commas inside values survive
+    (`status=a%2Cb,c`). Malformed values (bad dates, unknown presets) are ignored like unknown
+    params; a backwards custom range is swapped.
+25. `resultCount` takes `{ shown, total }` and sits right-aligned, just before `actions`.
+26. The TanStack adapter also exports `singleSelectFn` (exact match) and `textFn`
+    (case-insensitive contains), so every filter type works client-side.
+27. The sort chip only renders when a sort is set. Column headers in the demo use TanStack's
+    default cycle (ascending → descending → off).
+28. `/demo` renders in the browser only (its data is relative to today and its state is in the
+    URL), defers table updates behind the toolbar, and virtualises rows. Rationale: instant
+    apply stays responsive with 2,000 rows.

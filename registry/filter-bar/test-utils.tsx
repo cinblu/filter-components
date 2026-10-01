@@ -1,7 +1,6 @@
 // Test-only wiring of useFilters + chips + editors + More Filters menu. Not part of the registry.
 
-import { FilterEditorPanel } from "./editors/filter-editor";
-import { FilterChip } from "./filter-chip";
+import { FilterBarChip } from "./filter-bar";
 import { MoreFiltersMenu } from "./more-filters-menu";
 import type { FilterDefinition, FilterState } from "./types";
 import { type ApplyMode, useFilters } from "./use-filters";
@@ -93,29 +92,9 @@ export function ChipHarness({
   const filters = useFilters({ definitions, applyMode, defaultValue, onChange });
   return (
     <div>
-      {[...filters.quickFilters, ...filters.activeMoreFilters].map((definition) => {
-        const editor = filters.openEditor(definition.id);
-        return (
-          <FilterChip
-            key={definition.id}
-            definition={definition}
-            value={filters.applied[definition.id]}
-            onRemove={() => filters.clear(definition.id)}
-            onOpenChange={(open) => {
-              if (!open) editor.discard();
-            }}
-          >
-            {({ close }) => (
-              <FilterEditorPanel
-                definition={definition}
-                editor={editor}
-                applyMode={filters.applyMode}
-                onDone={close}
-              />
-            )}
-          </FilterChip>
-        );
-      })}
+      {[...filters.quickFilters, ...filters.activeMoreFilters].map((definition) => (
+        <FilterBarChip key={definition.id} filters={filters} definition={definition} />
+      ))}
       {filters.moreFilters.length > 0 && <MoreFiltersMenu filters={filters} />}
       <button type="button">Outside</button>
       <output data-testid="applied">{JSON.stringify(filters.applied)}</output>

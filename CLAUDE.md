@@ -28,6 +28,7 @@ SPEC disagree, the SPEC wins — or stop and ask.
 - Tailwind CSS v4, shadcn/ui (Popover, Command, Checkbox, Button, Calendar, Input,
   Separator, Badge, Tooltip as needed)
 - TanStack Table v8 (demo + optional adapter only — the core must not depend on it)
+- @tanstack/react-virtual (demo table only, to keep 2,000 rows smooth; not in the registry)
 - date-fns for date maths
 - Vitest + React Testing Library for unit/component tests; Playwright for a small set of
   end-to-end interaction tests

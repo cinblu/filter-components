@@ -13,14 +13,12 @@
         "lucide-react"
       ],
       "registryDependencies": [
-        "badge",
         "button",
         "calendar",
         "command",
         "input",
         "popover",
-        "separator",
-        "tooltip"
+        "separator"
       ],
       "files": [
         {
