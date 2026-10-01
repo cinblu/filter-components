@@ -53,19 +53,22 @@ export function ComponentPreview({ preview, code }: { preview: React.ReactNode; 
         </div>
       </div>
 
-      <div
-        ref={stageRef}
-        className="relative overflow-hidden rounded-xl border bg-(--surface-stage) shadow-sm"
-      >
-        <div id="preview-panel-preview" role="tabpanel" hidden={tab !== "preview"}>
-          {preview}
+      {/* A grey frame around the stage only, so the live component sits on a raised tray. */}
+      <div className="rounded-2xl border bg-(--surface-raised) p-1.5">
+        <div
+          ref={stageRef}
+          className="relative overflow-hidden rounded-xl border bg-(--surface-stage) shadow-sm"
+        >
+          <div id="preview-panel-preview" role="tabpanel" hidden={tab !== "preview"}>
+            {preview}
+          </div>
+          <div id="preview-panel-code" role="tabpanel" hidden={tab !== "code"} className="p-2">
+            <CodeBlock className="border-0 bg-transparent">{code}</CodeBlock>
+          </div>
+          {/* First view: a ghost cursor plays the main interactions. Under reduced motion, a
+              static "try it" hint instead. Either way, it goes once you start interacting. */}
+          {tab === "preview" && (reducedMotion ? <TryHint stageRef={stageRef} /> : <GhostTour stageRef={stageRef} />)}
         </div>
-        <div id="preview-panel-code" role="tabpanel" hidden={tab !== "code"} className="p-2">
-          <CodeBlock className="border-0 bg-transparent">{code}</CodeBlock>
-        </div>
-        {/* First view: a ghost cursor plays the main interactions. Under reduced motion, a
-            static "try it" hint instead. Either way, it goes once you start interacting. */}
-        {tab === "preview" && (reducedMotion ? <TryHint stageRef={stageRef} /> : <GhostTour stageRef={stageRef} />)}
       </div>
 
       <Link
