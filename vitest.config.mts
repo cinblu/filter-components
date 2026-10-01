@@ -9,6 +9,9 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // A fixed zone with DST, so date tests are deterministic on every machine and the
+    // daylight-saving edge cases are actually exercised.
+    env: { TZ: "Europe/London" },
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/*.test.{ts,tsx}"],
     exclude: ["node_modules/**", "e2e/**", ".next/**"],

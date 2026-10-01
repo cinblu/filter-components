@@ -238,3 +238,12 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
 8. Registry files install under `components/filter-bar/` (explicit `target`s), keeping the
    `editors/` sub-folder. Rationale: one folder people can find and edit, and relative imports
    between the files keep working.
+9. Pending edits are kept per filter id, and `openEditor(id)` has no side effects (safe to call
+   in render). Editors call `discard()` when they close without applying. Rationale: no stale
+   handles, and the hook holds no UI state.
+10. Active more-tier chips appear in the order they were applied; re-applying a filter keeps its
+    position. Rationale: a new chip appears at the end and existing chips never jump.
+11. `onChange` does not fire when a call changes nothing (e.g. applying an unchanged selection,
+    clearing an unset filter). Rationale: avoids pointless refetches.
+12. Values for ids with no definition are dropped from applied state. Rationale: stale URLs or
+    saved views can't create invisible filters.

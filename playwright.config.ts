@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3100;
+// Same port as `pnpm dev`. Next.js allows one dev server per project, so locally the tests
+// reuse a running `pnpm dev` instead of starting a second one.
+const PORT = 5000;
 
 export default defineConfig({
   testDir: "./e2e",
