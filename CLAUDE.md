@@ -53,6 +53,8 @@ registry/
       date-range.tsx
     sort-chip.tsx
     presets.ts              # date presets, resolved at query time
+    summary.ts              # chip summary text ("Status: Open, +2")
+    options.ts              # static or async option loading, cached
     url-state.ts            # optional URL sync
     types.ts
   filter-bar-tanstack/

@@ -8,12 +8,14 @@
       "type": "registry:block",
       "title": "Filter Bar",
       "description": "A modular filter toolbar for data-heavy tables: quick filters, a searchable More Filters menu, visible applied chips and a sort chip.",
-      "dependencies": ["date-fns", "lucide-react"],
+      "dependencies": [
+        "date-fns",
+        "lucide-react"
+      ],
       "registryDependencies": [
         "badge",
         "button",
         "calendar",
-        "checkbox",
         "command",
         "input",
         "popover",
@@ -35,6 +37,16 @@
           "path": "registry/filter-bar/use-filters.ts",
           "type": "registry:hook",
           "target": "components/filter-bar/use-filters.ts"
+        },
+        {
+          "path": "registry/filter-bar/options.ts",
+          "type": "registry:lib",
+          "target": "components/filter-bar/options.ts"
+        },
+        {
+          "path": "registry/filter-bar/summary.ts",
+          "type": "registry:lib",
+          "target": "components/filter-bar/summary.ts"
         },
         {
           "path": "registry/filter-bar/url-state.ts",
@@ -78,7 +90,9 @@
       "type": "registry:lib",
       "title": "Filter Bar — TanStack Table adapter",
       "description": "Maps applied Filter Bar state to TanStack Table columnFilters, with multiSelect and dateRange filter functions.",
-      "dependencies": ["@tanstack/react-table@^8"],
+      "dependencies": [
+        "@tanstack/react-table@^8"
+      ],
       "files": [
         {
           "path": "registry/filter-bar-tanstack/adapter.ts",

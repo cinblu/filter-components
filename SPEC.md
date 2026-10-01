@@ -247,3 +247,14 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
     clearing an unset filter). Rationale: avoids pointless refetches.
 12. Values for ids with no definition are dropped from applied state. Rationale: stale URLs or
     saved views can't create invisible filters.
+13. Multi-select keyboard: Enter applies (manual mode); Space toggles the highlighted row once
+    the user has moved with ↑/↓, otherwise it types a space into the search. In instant mode
+    Enter toggles. Rationale: keeps SPEC's "Enter applies" while still letting keyboard users
+    tick rows, and searches with spaces ("Legal Review") still work.
+14. The "+N" summary names the first selected value in option order, and truncation shortens
+    that label rather than cutting off "+N". Rationale: stable chip text; the count is the
+    more important part.
+15. After removing a filter with ×, focus moves to the chip body (the × no longer exists).
+    Rationale: keyboard users don't lose their place.
+16. Async `options` are loaded when the editor first opens and cached per loader. Until then,
+    chips show raw values. Rationale: no fetching for filters nobody opens.
