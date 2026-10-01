@@ -1,0 +1,91 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "filter-bar",
+  "homepage": "https://github.com/cinblu/filter-components",
+  "items": [
+    {
+      "name": "filter-bar",
+      "type": "registry:block",
+      "title": "Filter Bar",
+      "description": "A modular filter toolbar for data-heavy tables: quick filters, a searchable More Filters menu, visible applied chips and a sort chip.",
+      "dependencies": ["date-fns", "lucide-react"],
+      "registryDependencies": [
+        "badge",
+        "button",
+        "calendar",
+        "checkbox",
+        "command",
+        "input",
+        "popover",
+        "separator",
+        "tooltip"
+      ],
+      "files": [
+        {
+          "path": "registry/filter-bar/types.ts",
+          "type": "registry:lib",
+          "target": "components/filter-bar/types.ts"
+        },
+        {
+          "path": "registry/filter-bar/presets.ts",
+          "type": "registry:lib",
+          "target": "components/filter-bar/presets.ts"
+        },
+        {
+          "path": "registry/filter-bar/use-filters.ts",
+          "type": "registry:hook",
+          "target": "components/filter-bar/use-filters.ts"
+        },
+        {
+          "path": "registry/filter-bar/url-state.ts",
+          "type": "registry:lib",
+          "target": "components/filter-bar/url-state.ts"
+        },
+        {
+          "path": "registry/filter-bar/filter-bar.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/filter-bar.tsx"
+        },
+        {
+          "path": "registry/filter-bar/filter-chip.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/filter-chip.tsx"
+        },
+        {
+          "path": "registry/filter-bar/more-filters-menu.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/more-filters-menu.tsx"
+        },
+        {
+          "path": "registry/filter-bar/sort-chip.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/sort-chip.tsx"
+        },
+        {
+          "path": "registry/filter-bar/editors/multi-select.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/editors/multi-select.tsx"
+        },
+        {
+          "path": "registry/filter-bar/editors/date-range.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/editors/date-range.tsx"
+        }
+      ]
+    },
+    {
+      "name": "filter-bar-tanstack",
+      "type": "registry:lib",
+      "title": "Filter Bar — TanStack Table adapter",
+      "description": "Maps applied Filter Bar state to TanStack Table columnFilters, with multiSelect and dateRange filter functions.",
+      "dependencies": ["@tanstack/react-table@^8"],
+      "files": [
+        {
+          "path": "registry/filter-bar-tanstack/adapter.ts",
+          "type": "registry:lib",
+          "target": "components/filter-bar/tanstack-adapter.ts"
+        }
+      ]
+    }
+  ]
+}
