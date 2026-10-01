@@ -51,6 +51,7 @@ registry/
     more-filters-menu.tsx   # searchable menu with nested editors
     editors/
       filter-editor.tsx     # picks the editor for a filter type
+      filter-dialog.tsx     # "Filter by …" modal (custom date, text from More Filters)
       multi-select.tsx
       single-select.tsx
       date-range.tsx
@@ -59,6 +60,7 @@ registry/
     presets.ts              # date presets, resolved at query time
     summary.ts              # chip summary text ("Status: Open, +2")
     options.ts              # static or async option loading, cached
+    styles.ts               # shared chip/popover classes, all sized by --fb-* variables
     url-state.ts            # optional URL sync
     types.ts
   filter-bar-tanstack/

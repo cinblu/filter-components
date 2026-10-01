@@ -47,6 +47,24 @@ describe("resolvePreset — SPEC §6.2 definitions", () => {
     });
   });
 
+  it("last3d = start of day 2 days ago → end of today", () => {
+    expect(resolvePreset("last3d", now)).toEqual({ from: at(2026, 4, 22), to: endOf(2026, 4, 24) });
+  });
+
+  it("last1m / last3m / last6m = start of the same date 1/3/6 months ago → end of today", () => {
+    expect(resolvePreset("last1m", now)).toEqual({ from: at(2026, 3, 24), to: endOf(2026, 4, 24) });
+    expect(resolvePreset("last3m", now)).toEqual({ from: at(2026, 1, 24), to: endOf(2026, 4, 24) });
+    expect(resolvePreset("last6m", now)).toEqual({ from: at(2025, 10, 24), to: endOf(2026, 4, 24) });
+  });
+
+  it("last1y = start of the same date last year → end of today", () => {
+    expect(resolvePreset("last1y", now)).toEqual({ from: at(2025, 4, 24), to: endOf(2026, 4, 24) });
+  });
+
+  it("last1m on the 31st clamps to the end of a shorter month", () => {
+    expect(resolvePreset("last1m", at(2026, 3, 31, 9)).from).toEqual(at(2026, 2, 28));
+  });
+
   it("thisMonth = start of this month → end of today", () => {
     expect(resolvePreset("thisMonth", now)).toEqual({
       from: at(2026, 4, 1),
@@ -139,16 +157,21 @@ describe("presets are relative", () => {
 describe("preset metadata", () => {
   it("has a label for every preset key", () => {
     expect(DATE_PRESET_LABELS).toEqual({
-      lastDay: "Last day",
-      last7d: "Last 7 days",
+      lastDay: "1 day ago",
+      last3d: "3 days ago",
+      last7d: "1 week ago",
       last30d: "Last 30 days",
+      last1m: "1 month ago",
+      last3m: "3 months ago",
+      last6m: "6 months ago",
+      last1y: "1 year ago",
       lastMonth: "Last month",
       thisMonth: "This month",
     });
   });
 
-  it("defaults to Last day, Last 7 days, Last 30 days, Last month", () => {
-    expect(DEFAULT_DATE_PRESETS).toEqual(["lastDay", "last7d", "last30d", "lastMonth"]);
+  it("defaults to the design's list: 1 day, 3 days, 1 week, 1/3/6 months, 1 year ago", () => {
+    expect(DEFAULT_DATE_PRESETS).toEqual(["lastDay", "last3d", "last7d", "last1m", "last3m", "last6m", "last1y"]);
   });
 
   it("isDatePresetKey accepts only known keys", () => {

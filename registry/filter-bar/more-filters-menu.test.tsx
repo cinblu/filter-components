@@ -119,6 +119,45 @@ describe("More Filters menu (SPEC §7)", () => {
   });
 });
 
+describe("text filters open a 'Filter by' dialog", () => {
+  it("marks only side-card filters with ›", async () => {
+    await openMenu();
+    const [workflow, , , batch] = menuItems();
+    expect(workflow.querySelector(".lucide-chevron-right")).not.toBeNull();
+    expect(batch.querySelector(".lucide-chevron-right")).toBeNull();
+    expect(batch).toHaveAttribute("aria-haspopup", "dialog");
+  });
+
+  it("opens the dialog, applies, and closes both the dialog and the menu", async () => {
+    const { user, onChange, trigger } = await openMenu();
+    await user.click(menuItems()[3]);
+    const dialog = screen.getByRole("dialog", { name: "Filter by Batch ID" });
+    expect(within(dialog).getByRole("textbox", { name: "Batch ID" })).toHaveFocus();
+    await user.keyboard("B-7{Enter}");
+    expect(onChange).toHaveBeenCalledExactlyOnceWith({ batchId: "B-7" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Batch ID filter: B-7. Edit" })).toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("Escape closes only the dialog and returns to the list", async () => {
+    const { user, onChange } = await openMenu();
+    await user.click(menuItems()[3]);
+    await user.keyboard("B-7{Escape}");
+    expect(screen.queryByRole("dialog", { name: "Filter by Batch ID" })).not.toBeInTheDocument();
+    expect(menu()).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Filter")).toHaveFocus();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("← in the dialog's input only moves the caret", async () => {
+    const { user } = await openMenu();
+    await user.click(menuItems()[3]);
+    await user.keyboard("{ArrowLeft}");
+    expect(screen.getByRole("dialog", { name: "Filter by Batch ID" })).toBeInTheDocument();
+  });
+});
+
 describe("[T] More Filters keyboard", () => {
   it("↑/↓ move the highlight", async () => {
     const { user } = await openMenu();
@@ -163,11 +202,12 @@ describe("[T] More Filters keyboard", () => {
 
   it("← in a text field moves the caret until it reaches the start", async () => {
     const { user } = await openMenu();
-    await user.keyboard("{ArrowDown}{ArrowDown}{ArrowDown}{Enter}");
+    await user.keyboard("{ArrowDown}{ArrowRight}");
+    const search = within(editorPanel("Assignee")!).getByPlaceholderText("Assignee");
     await user.keyboard("ab{ArrowLeft}");
-    expect(editorPanel("Batch ID")).toBeInTheDocument();
+    expect(search).toHaveFocus();
     await user.keyboard("{ArrowLeft}{ArrowLeft}");
-    expect(editorPanel("Batch ID")).not.toBeInTheDocument();
+    expect(editorPanel("Assignee")).not.toBeInTheDocument();
   });
 
   it("Escape inside the editor returns to the list without closing the menu", async () => {

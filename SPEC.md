@@ -69,15 +69,18 @@ const f = useFilters({
 
 ## 4. Toolbar — `FilterBar`
 
-Layout, left to right on one row:
-`[title slot] [search] [quick chips…] [active more-tier chips…] [+ More Filters] [sort chip] [Clear all] ······ [actions slot]`
+Layout, two areas on one row:
+`[title slot] [search] [quick chips…] [active more-tier chips…] [+ More Filters] [sort chip]` ······ `[Clear all] [result count] [actions slot]`
 
-- Wraps onto a second line when there isn't enough width. It never scrolls horizontally.
+- The filters area wraps within itself when there isn't enough width. The right-hand group
+  (Clear all, count, actions) stays put; on narrow screens it drops below. Nothing scrolls
+  horizontally.
 - `[T]` Quick filters are always rendered: dashed when unset, filled when set.
 - `[T]` More-tier filters render as chips **only while applied**. When cleared, they go
   back into the More Filters menu.
 - `[T]` "Clear all" appears only when at least one filter is applied. It clears filters, not
-  the search text and not the sort.
+  the search text and not the sort. While hidden it keeps its space, so it always appears
+  in the same spot and the count and actions never shift.
 - The global search input is optional (`search` prop). It applies on typing with a 300 ms
   debounce. It does not use Apply.
 - An optional `resultCount` prop renders "Showing 42 of 1,200" in an `aria-live="polite"`
@@ -86,16 +89,22 @@ Layout, left to right on one row:
 ## 5. Chip — `FilterChip`
 
 - Unset: dashed 1px border, muted text, leading `+` icon, label only — `+ Created Date`.
-- Set: solid subtle background, text `Label: summary`, trailing `×` button.
+  Min width 60px. Optional context tooltip on hover from `definition.description`.
+- Set: solid 1px border, `× Label  Value ▾`. The leading `+` turns 45° into the `×`, which
+  removes the filter; there is no other ×. The value and chevron are in the primary colour;
+  the chevron points up while the editor is open. Max width 400px; the value is cut off with
+  an ellipsis after one line.
 - Summary rules `[T]`:
-  - multiSelect, 1 value → `Status: Open`
-  - multiSelect, 2+ values → `Status: Open, +2`
+  - multiSelect, 1 value → `Status  Open`
+  - multiSelect, 2+ values → `Status  3 items`
   - singleSelect → the option label
-  - dateRange preset → the preset label: `Created Date: Last 7 days`
-  - dateRange custom → `Created Date: Apr 18 – Apr 24` (add the year only if the range
+  - dateRange preset → the preset label: `Created Date  1 week ago`
+  - dateRange custom → `Created Date  Apr 18 – Apr 24` (add the year only if the range
     isn't in the current year)
-  - Truncate the summary at 24 characters with an ellipsis; the full value goes in
-    `title` and the aria-label.
+- Hover tooltip on a set chip: the full value — every selected label, or for a date preset
+  the exact span it covers now (`2026-04-18 12:00 AM – 2026-04-24 11:59 PM`). Never shown
+  while the editor is open. The aria-label carries the full value too.
+- The popover opens 8px below the chip.
 - `[T]` Clicking the chip body opens its editor in a popover anchored to the chip.
 - `[T]` Clicking `×` clears that filter **immediately** (no Apply) and doesn't open the
   editor.
@@ -114,8 +123,12 @@ Layout, left to right on one row:
   the rest. The order is **frozen while the editor is open**. Ticking or unticking items
   must not make rows jump under the cursor. The new order takes effect the next time it opens.
 - `[T]` Empty search result shows "No matches".
-- Footer (manual mode only): `Reset` (text button, clears the pending selection) on the
-  left, `Apply` (primary) on the right. `[T]` Apply is disabled when `!canApply`.
+- A thin line separates the options that were selected when the editor opened from the
+  rest (frozen with the order).
+- The search input shows a primary-coloured border while focused.
+- Footer (manual mode only): `Reset` (primary-coloured text button, clears the pending
+  selection) on the left, `Apply` (primary) on the right. `[T]` Apply is disabled when
+  `!canApply`.
 - `[T]` Enter applies (when enabled). Escape discards and closes. Clicking outside
   discards and closes.
 - Instant mode: no footer. Each toggle applies immediately.
@@ -123,34 +136,42 @@ Layout, left to right on one row:
   summary.
 
 ### 6.2 Date range
-- Preset list (default: Last day, Last 7 days, Last 30 days, Last month) plus "Custom
-  range…".
+- Preset list (default: 1 day ago, 3 days ago, 1 week ago, 1 month ago, 3 months ago,
+  6 months ago, 1 year ago) plus "Custom date…". "N ago" means "since N ago, up to now".
 - `[T]` Clicking a preset applies it **immediately and closes**, even in manual mode. This
   is the "one click" behaviour from the article.
 - `[T]` Presets are stored as keys and resolved to dates at query time (`resolvePreset(key,
   now)`), so "Last 7 days" stays relative in a shared URL.
 - Preset definitions `[T]` (local time zone, inclusive):
-  - `lastDay` = now − 24h → now
-  - `last7d` = start of day 6 days ago → end of today
-  - `last30d` = start of day 29 days ago → end of today
-  - `lastMonth` = the whole previous calendar month
-  - `thisMonth` = start of this month → end of today
-- "Custom range…" shows a two-month range calendar (shadcn Calendar) with Reset and Apply.
-  `[T]` Apply is disabled until both ends are picked.
+  - `lastDay` ("1 day ago") = now − 24h → now
+  - `last3d` ("3 days ago") = start of day 2 days ago → end of today
+  - `last7d` ("1 week ago") = start of day 6 days ago → end of today
+  - `last1m` / `last3m` / `last6m` ("N months ago") = start of the same date N months ago →
+    end of today
+  - `last1y` ("1 year ago") = start of the same date a year ago → end of today
+  - Also available, not in the default list: `last30d` ("Last 30 days") = start of day 29
+    days ago → end of today; `lastMonth` = the whole previous calendar month; `thisMonth` =
+    start of this month → end of today
+- "Custom date…" opens a "Filter by {label}" dialog with a two-month range calendar
+  (shadcn Calendar) and Apply. `[T]` Apply is disabled until both ends are picked. Escape or
+  ✕ closes only the dialog and returns to the presets.
 - The currently applied preset/range is shown as selected when the editor opens.
 
 ### 6.3 Single-select and text
 - Single-select: a list. Choosing an option applies and closes.
-- Text: an input with Apply. Enter applies.
+- Text: an input with Apply. Enter applies. From the More Filters menu it opens in a
+  "Filter by {label}" dialog instead of a side card.
 
 ## 7. More Filters menu
 - Trigger: a dashed chip `+ More Filters`.
 - Opens a popover with a search input ("Filter") and a list of all more-tier filters.
   Applied ones show a small dot and their summary in muted text.
 - `[T]` Typing filters the list by label (case-insensitive, substring).
-- Each item has a `›` affordance. Hovering (desktop) or pressing → / Enter opens that filter's
-  editor as a **nested panel to the right** (the "Queue Name ▸ → Queues" pattern). On narrow
-  screens (< 640px) the editor replaces the list, with a back button.
+- Select and date items have a `›` affordance. Hovering (desktop) or pressing → / Enter opens
+  that filter's editor as a **second card 8px to the right** (the "Queue Name ▸ → Queues"
+  pattern). On narrow screens (< 640px) the editor replaces the list, with a back button.
+- Text items (no `›`) open a "Filter by {label}" dialog on → / Enter / click. Escape or ✕
+  returns to the list.
 - `[T]` Keyboard: ↑/↓ move, → or Enter opens the editor, ← or Escape inside the editor
   returns to the list, Escape on the list closes the menu.
 - Applying inside a nested editor closes the whole menu and the new chip appears in the
@@ -158,8 +179,11 @@ Layout, left to right on one row:
 
 ## 8. Sort chip
 - Props: `sort?: SortState`, `onSortChange(sort | undefined)`.
-- When a sort is set, render `↓ Created Date` (arrow shows direction).
-- `[T]` Clicking the chip toggles the direction. `×` clears the sort.
+- When a sort is set, render `× Sort: Created Date  Newest first ▾`, styled like a set filter
+  chip. "Sort:" is a fixed label. The direction words come from
+  `sort.directionLabels` (default "Ascending" / "Descending").
+- `[T]` Clicking the chip opens a menu with the two directions; choosing one changes it.
+  `×` clears the sort.
 - This keeps the active sort visible even when the column header is scrolled out of view.
 
 ## 9. Theming
@@ -171,9 +195,20 @@ these component variables, defined with sensible defaults:
 --fb-chip-radius: var(--radius-sm);
 --fb-chip-gap: 0.375rem;
 --fb-chip-border-style: dashed;     /* unset chips */
+--fb-chip-min-width: 3.75rem;       /* 60px */
+--fb-chip-max-width: 25rem;         /* 400px; the value truncates after one line */
+--fb-chip-font-size: 0.8125rem;
 --fb-popover-width: 18rem;
 --fb-density: 1;                    /* 0.875 compact, 1 default, 1.125 comfortable */
+
+/* Derived; components use these */
+--fb-chip-h: calc(var(--fb-chip-height) * var(--fb-density));
+--fb-chip-px: calc(0.5rem * var(--fb-density));
+--fb-row-py: calc(0.375rem * var(--fb-density));
 ```
+
+The registry item installs this block. The docs site uses a green `--primary`, which is
+what the chip values, Apply buttons and focus borders pick up.
 
 All sizes inside the component should derive from these variables so the customiser
 (§12) can change them live.
@@ -287,3 +322,38 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
 28. `/demo` renders in the browser only (its data is relative to today and its state is in the
     URL), defers table updates behind the toolbar, and virtualises rows. Rationale: instant
     apply stays responsive with 2,000 rows.
+29. Phase 5 brings in Nahid's design board: chip anatomy (`× Label Value ▾`, + turning into
+    ×), "N items" for multi-select, the "N ago" preset list, "Custom date…" and text filters
+    from More Filters in a "Filter by …" dialog, two separate cards in More Filters, the sort
+    chip's "Sort:" label and direction menu, context tooltips, 8px popover gaps, 60/400px chip
+    widths and a green primary. §4–§9 above are updated to match; this replaces the 24-char
+    truncation, "Open, +2" and click-to-toggle sort from the first version of the spec.
+30. Chip values truncate with CSS at the chip's max width rather than at a character count.
+    Rationale: the design specifies a width; character counts don't track rendered width.
+31. The design's rich hover cards (avatar + name + email next to an option, and a list of
+    selected people with avatars) and the "Patient" chip aren't built yet. The patient one
+    would need MRN/DOB/SSN, which the project rules forbid in demo data; the component could
+    support it later through a custom tooltip render prop.
+32. The divider under the "selected when opened" group is a line drawn on the first row
+    below it, not a separator element, because a listbox may only contain options (axe).
+
+## Awkward to implement — suggested changes
+Found while building and polishing. Each has a suggestion; none are blocking.
+1. **"Enter applies" (§6.1) leaves no key for ticking rows.** Implemented as Space-after-arrows
+   (decision 13). Suggest writing that into §6.1 so it's a rule, not a workaround.
+2. **`lastDay` is a rolling 24 h; every other preset is whole days.** "1 day ago" therefore
+   starts at the current time yesterday, while "3 days ago" starts at midnight. Suggest
+   `lastDay` = start of yesterday → end of today, for consistency.
+3. **`openEditor(id)` doesn't open anything** — it returns a handle with no side effects.
+   Suggest renaming to `getEditor(id)` before the API is public.
+4. **Async `options` and chip text.** A chip can only show labels for options that have been
+   loaded, so an async filter restored from a URL shows raw values until its editor opens.
+   Suggest an optional `getOptionLabel(value)` on the definition for that case.
+5. **Clear all "appears only when…" vs a fixed spot.** Both are now true (it's invisible but
+   keeps its space). Suggest saying "is hidden" rather than "appears" in §4.
+6. **Sort "click toggles" vs the design's chevron.** A chevron promises a menu, so the chip
+   opens one (decision 29). If one-click toggling matters, the arrow could flip on click and
+   the chevron be dropped.
+7. **Custom date shows dates; the design shows date-times** (`2025-07-17 11:00 PM → …`).
+   Custom ranges are whole days (§2), so times would always read 12:00 AM / 11:59 PM. Suggest
+   keeping dates on the chip and showing times only in the preset tooltip, as now.

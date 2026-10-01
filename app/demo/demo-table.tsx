@@ -46,9 +46,9 @@ const toOptions = (labels: readonly string[]): FilterOption[] =>
 
 // SPEC §12: quick = Created Date, Queue, Status. More = Workflow, Assignee, Source, Batch ID.
 const definitions: FilterDefinition[] = [
-  { id: "createdAt", label: "Created Date", type: "dateRange", tier: "quick", presets: ["lastDay", "last7d", "last30d", "lastMonth", "thisMonth"] },
-  { id: "queue", label: "Queue", type: "multiSelect", tier: "quick", options: toOptions(QUEUES), searchPlaceholder: "Queues" },
-  { id: "status", label: "Status", type: "multiSelect", tier: "quick", options: toOptions(STATUSES) },
+  { id: "createdAt", label: "Created Date", type: "dateRange", tier: "quick", description: "When the batch arrived" },
+  { id: "queue", label: "Queue", type: "multiSelect", tier: "quick", options: toOptions(QUEUES), searchPlaceholder: "Queues", description: "Which team's queue the batch is in" },
+  { id: "status", label: "Status", type: "multiSelect", tier: "quick", options: toOptions(STATUSES), description: "Where the batch is in processing" },
   { id: "workflow", label: "Workflow", type: "singleSelect", tier: "more", options: toOptions(WORKFLOWS), searchPlaceholder: "Workflows" },
   { id: "assignee", label: "Assignee", type: "multiSelect", tier: "more", options: toOptions(ASSIGNEES), searchPlaceholder: "Assignees" },
   { id: "source", label: "Source", type: "multiSelect", tier: "more", options: toOptions(SOURCES) },
@@ -88,6 +88,13 @@ const columns: ColumnDef<DemoRow>[] = [
 ];
 
 const COLUMN_LABELS = Object.fromEntries(columns.map((c) => [c.id, String(c.header)]));
+
+// Direction words that fit each column, for the sort chip.
+const DIRECTION_LABELS: Record<string, SortState["directionLabels"]> = {
+  createdAt: { asc: "Oldest first", desc: "Newest first" },
+  pages: { asc: "Fewest first", desc: "Most first" },
+};
+const ALPHABETICAL = { asc: "A to Z", desc: "Z to A" };
 
 // Global search looks at what people see, not the slugs.
 const searchRow: FilterFn<DemoRow> = (row, _columnId, query: string) => {
@@ -135,6 +142,7 @@ export function DemoTable() {
     columnId: sorting[0].id,
     label: COLUMN_LABELS[sorting[0].id] ?? sorting[0].id,
     direction: sorting[0].desc ? "desc" : "asc",
+    directionLabels: DIRECTION_LABELS[sorting[0].id] ?? ALPHABETICAL,
   };
   const onSortChange = (next: SortState | undefined) =>
     setSorting(next ? [{ id: next.columnId, desc: next.direction === "desc" }] : []);

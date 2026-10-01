@@ -18,6 +18,8 @@ export interface FilterDefinition {
   type: FilterType;
   /** "quick" filters are always visible; "more" filters live in the More Filters menu. */
   tier: "quick" | "more";
+  /** Context tooltip on the unset chip, e.g. "When the batch was created". */
+  description?: string;
   /** Options for the select types. Can be loaded lazily. */
   options?: FilterOption[] | (() => Promise<FilterOption[]>);
   /** Show a search input in the editor. Defaults to true when there are more than 7 options. */
@@ -30,7 +32,17 @@ export interface FilterDefinition {
   allowCustomRange?: boolean;
 }
 
-export type DatePresetKey = "lastDay" | "last7d" | "last30d" | "lastMonth" | "thisMonth";
+export type DatePresetKey =
+  | "lastDay"
+  | "last3d"
+  | "last7d"
+  | "last30d"
+  | "last1m"
+  | "last3m"
+  | "last6m"
+  | "last1y"
+  | "lastMonth"
+  | "thisMonth";
 
 export type DateRangeValue =
   | { kind: "preset"; preset: DatePresetKey }
@@ -47,4 +59,6 @@ export interface SortState {
   columnId: string;
   label: string;
   direction: "asc" | "desc";
+  /** Words for each direction, e.g. { asc: "Oldest first", desc: "Newest first" }. */
+  directionLabels?: { asc: string; desc: string };
 }

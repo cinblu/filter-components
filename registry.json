@@ -16,9 +16,11 @@
         "button",
         "calendar",
         "command",
+        "dialog",
         "input",
         "popover",
-        "separator"
+        "separator",
+        "tooltip"
       ],
       "files": [
         {
@@ -45,6 +47,11 @@
           "path": "registry/filter-bar/summary.ts",
           "type": "registry:lib",
           "target": "components/filter-bar/summary.ts"
+        },
+        {
+          "path": "registry/filter-bar/styles.ts",
+          "type": "registry:lib",
+          "target": "components/filter-bar/styles.ts"
         },
         {
           "path": "registry/filter-bar/url-state.ts",
@@ -95,8 +102,29 @@
           "path": "registry/filter-bar/editors/filter-editor.tsx",
           "type": "registry:component",
           "target": "components/filter-bar/editors/filter-editor.tsx"
+        },
+        {
+          "path": "registry/filter-bar/editors/filter-dialog.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/editors/filter-dialog.tsx"
         }
-      ]
+      ],
+      "css": {
+        ":root": {
+          "--fb-chip-height": "1.75rem",
+          "--fb-chip-radius": "var(--radius-sm)",
+          "--fb-chip-gap": "0.375rem",
+          "--fb-chip-border-style": "dashed",
+          "--fb-chip-min-width": "3.75rem",
+          "--fb-chip-max-width": "25rem",
+          "--fb-chip-font-size": "0.8125rem",
+          "--fb-popover-width": "18rem",
+          "--fb-density": "1",
+          "--fb-chip-h": "calc(var(--fb-chip-height) * var(--fb-density))",
+          "--fb-chip-px": "calc(0.5rem * var(--fb-density))",
+          "--fb-row-py": "calc(0.375rem * var(--fb-density))"
+        }
+      }
     },
     {
       "name": "filter-bar-tanstack",

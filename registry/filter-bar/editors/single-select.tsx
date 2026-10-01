@@ -6,7 +6,10 @@ import { useEffect, useRef, useState } from "react";
 
 import { Command, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
+import { cn } from "@/lib/utils";
+
 import { useFilterOptions } from "../options";
+import { rowPadding, searchFocus } from "../styles";
 import type { FilterEditorProps } from "./filter-editor";
 
 export function SingleSelectEditor({ definition, editor, onDone, autoFocus = true }: FilterEditorProps) {
@@ -40,7 +43,7 @@ export function SingleSelectEditor({ definition, editor, onDone, autoFocus = tru
       defaultValue={current ?? options?.[0]?.value}
       tabIndex={searchable ? undefined : -1}
       label={`${definition.label} options`}
-      className="w-[var(--fb-popover-width,18rem)] rounded-none! p-0 outline-none"
+      className={cn("w-(--fb-popover-width) rounded-none! p-0 outline-none", searchFocus)}
     >
       {searchable && (
         <CommandInput
@@ -66,6 +69,7 @@ export function SingleSelectEditor({ definition, editor, onDone, autoFocus = tru
               // shadcn's CommandItem shows its trailing check when data-checked is true.
               data-checked={option.value === current}
               aria-checked={option.value === current}
+              className={rowPadding}
             >
               {option.icon}
               <span className="truncate">{option.label}</span>

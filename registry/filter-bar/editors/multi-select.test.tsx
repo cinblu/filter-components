@@ -129,6 +129,21 @@ describe("[T] selected-first ordering, frozen while open", () => {
     expect(optionNames()[0]).toBe("Contracts");
   });
 
+  it("draws a line under the options that were selected when it opened", async () => {
+    const { user } = await openQueue({ queue: ["billing", "claims"] });
+    const firstOther = option("Intake");
+    expect(firstOther).toHaveAttribute("data-divider-above", "true");
+    expect(screen.getAllByRole("option").filter((o) => o.hasAttribute("data-divider-above"))).toHaveLength(1);
+    // The line stays put while ticking; it follows the order frozen at open.
+    await user.click(option("Contracts"));
+    expect(option("Intake")).toHaveAttribute("data-divider-above", "true");
+  });
+
+  it("draws no line when nothing, or everything, was selected", async () => {
+    await openQueue();
+    expect(screen.getAllByRole("option").some((o) => o.hasAttribute("data-divider-above"))).toBe(false);
+  });
+
   it("orderSelectedFirst keeps the original relative order in both groups", () => {
     const options = ["a", "b", "c", "d"].map((value) => ({ value, label: value }));
     expect(orderSelectedFirst(options, ["d", "b"]).map((o) => o.value)).toEqual(["b", "d", "a", "c"]);

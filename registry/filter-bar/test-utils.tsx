@@ -59,6 +59,7 @@ export const moreDefinitions: FilterDefinition[] = [
     label: "Assignee",
     type: "multiSelect",
     tier: "more",
+    searchable: true,
     options: [
       { value: "avrel", label: "Avrel" },
       { value: "bexa", label: "Bexa" },

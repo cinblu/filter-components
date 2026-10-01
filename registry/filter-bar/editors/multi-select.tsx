@@ -28,6 +28,7 @@ import { Command, CommandInput, CommandItem, CommandList } from "@/components/ui
 import { Separator } from "@/components/ui/separator";
 
 import { useFilterOptions } from "../options";
+import { rowPadding, searchFocus } from "../styles";
 import type { FilterOption } from "../types";
 import type { FilterEditorProps } from "./filter-editor";
 
@@ -53,11 +54,15 @@ export function MultiSelectEditor({
   // Selected-first order is worked out once, when the editor opens (this component mounts
   // with the popover), and then frozen. Re-sorting on every tick would make rows jump under
   // the cursor. The new order shows up the next time the editor opens.
-  const [frozenOrder, setFrozenOrder] = useState<FilterOption[] | undefined>(() =>
-    options ? orderSelectedFirst(options, [...selected]) : undefined,
-  );
+  // `pinned` remembers what was selected at that moment, to draw the divider under that group.
+  const freeze = (list: FilterOption[]) => ({
+    order: orderSelectedFirst(list, [...selected]),
+    pinned: new Set(selected),
+  });
+  const [frozen, setFrozen] = useState(() => (options ? freeze(options) : undefined));
   // Async options: freeze the order as soon as they arrive.
-  if (options && !frozenOrder) setFrozenOrder(orderSelectedFirst(options, [...selected]));
+  if (options && !frozen) setFrozen(freeze(options));
+  const frozenOrder = frozen?.order;
 
   const [query, setQuery] = useState("");
   // Start with the first row highlighted. cmdk moves focus into its own input whenever its
@@ -70,6 +75,10 @@ export function MultiSelectEditor({
   const searchable = definition.searchable ?? (options?.length ?? 0) > 7;
   const needle = query.trim().toLowerCase();
   const visible = (frozenOrder ?? []).filter((o) => o.label.toLowerCase().includes(needle));
+  // The divider goes after the last visible option that was selected when the editor opened,
+  // as long as other options follow it.
+  const pinnedVisible = visible.filter((o) => frozen?.pinned.has(o.value)).length;
+  const showDivider = pinnedVisible > 0 && pinnedVisible < visible.length;
   const visibleSelectedCount = visible.filter((o) => selected.has(o.value)).length;
   const allVisibleSelected = visible.length > 0 && visibleSelectedCount === visible.length;
   const selectAllState = allVisibleSelected ? true : visibleSelectedCount > 0 ? "indeterminate" : false;
@@ -149,7 +158,7 @@ export function MultiSelectEditor({
       onKeyDown={handleKeyDown}
       tabIndex={searchable ? undefined : -1}
       label={`${definition.label} options`}
-      className="w-[var(--fb-popover-width,18rem)] rounded-none! p-0 outline-none"
+      className={cn("w-(--fb-popover-width) rounded-none! p-0 outline-none", searchFocus)}
     >
       {searchable && (
         <CommandInput
@@ -175,16 +184,18 @@ export function MultiSelectEditor({
               value={SELECT_ALL}
               onSelect={toggleAllVisible}
               aria-checked={selectAllState === "indeterminate" ? "mixed" : selectAllState}
+              className={rowPadding}
             >
               <CheckMark checked={selectAllState} />
               <span>Select all</span>
             </CommandItem>
-            {visible.map((option) => (
+            {visible.map((option, index) => (
               <OptionRow
                 key={option.value}
                 option={option}
                 checked={selected.has(option.value)}
                 onToggle={onToggle}
+                dividerAbove={showDivider && index === pinnedVisible}
               />
             ))}
           </>
@@ -200,6 +211,7 @@ export function MultiSelectEditor({
               size="sm"
               onClick={() => editor.reset()}
               disabled={selected.size === 0}
+              className="text-primary hover:text-primary"
             >
               Reset
             </Button>
@@ -217,16 +229,26 @@ const OptionRow = memo(function OptionRow({
   option,
   checked,
   onToggle,
+  dividerAbove,
 }: {
   option: FilterOption;
   checked: boolean;
   onToggle: (value: string) => void;
+  /** Draws the line under the "selected when opened" group. A line on the row, rather than a
+   *  separator element, because a listbox may only contain options. */
+  dividerAbove?: boolean;
 }) {
   return (
     <CommandItem
       value={itemValue(option.value)}
       onSelect={() => onToggle(option.value)}
       aria-checked={checked}
+      data-divider-above={dividerAbove || undefined}
+      className={cn(
+        rowPadding,
+        dividerAbove &&
+          "relative mt-2 before:pointer-events-none before:absolute before:inset-x-0 before:-top-1 before:h-px before:bg-border",
+      )}
     >
       <CheckMark checked={checked} />
       {option.icon}

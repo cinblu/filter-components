@@ -34,48 +34,51 @@ async function openCreatedDate(
 }
 
 describe("presets", () => {
-  it("offers the default presets plus Custom range…", async () => {
+  it("offers the design's presets plus Custom date…", async () => {
     await openCreatedDate();
     expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual([
-      "Last day",
-      "Last 7 days",
-      "Last 30 days",
-      "Last month",
-      "Custom range…",
+      "1 day ago",
+      "3 days ago",
+      "1 week ago",
+      "1 month ago",
+      "3 months ago",
+      "6 months ago",
+      "1 year ago",
+      "Custom date…",
     ]);
   });
 
   it("[T] clicking a preset applies it immediately and closes, in manual mode", async () => {
     const { user, onChange } = await openCreatedDate();
-    await user.click(screen.getByRole("option", { name: "Last 7 days" }));
+    await user.click(screen.getByRole("option", { name: "1 week ago" }));
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Created Date filter: Last 7 days. Edit" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Created Date filter: 1 week ago. Edit" })).toBeInTheDocument();
   });
 
   it("[T] stores the preset as a key, not as dates", async () => {
     const { user } = await openCreatedDate();
-    await user.click(screen.getByRole("option", { name: "Last 30 days" }));
-    expect(applied()).toEqual({ createdAt: { kind: "preset", preset: "last30d" } });
+    await user.click(screen.getByRole("option", { name: "1 month ago" }));
+    expect(applied()).toEqual({ createdAt: { kind: "preset", preset: "last1m" } });
   });
 
   it("applies with Enter on the highlighted preset", async () => {
     const { user } = await openCreatedDate();
     await user.keyboard("{ArrowDown}{Enter}");
-    expect(applied()).toEqual({ createdAt: { kind: "preset", preset: "last7d" } });
+    expect(applied()).toEqual({ createdAt: { kind: "preset", preset: "last3d" } });
   });
 
   it("also applies and closes in instant mode", async () => {
     const { user, onChange } = await openCreatedDate({ applyMode: "instant" });
-    await user.click(screen.getByRole("option", { name: "Last day" }));
+    await user.click(screen.getByRole("option", { name: "1 day ago" }));
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("shows the applied preset as selected when the editor opens", async () => {
-    await openCreatedDate({ defaultValue: { createdAt: { kind: "preset", preset: "last30d" } } });
-    expect(screen.getByRole("option", { name: "Last 30 days" })).toHaveAttribute("aria-checked", "true");
-    expect(screen.getByRole("option", { name: "Last 7 days" })).toHaveAttribute("aria-checked", "false");
+    await openCreatedDate({ defaultValue: { createdAt: { kind: "preset", preset: "last3m" } } });
+    expect(screen.getByRole("option", { name: "3 months ago" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("option", { name: "1 week ago" })).toHaveAttribute("aria-checked", "false");
   });
 
   it("respects the definition's presets and allowCustomRange", async () => {
@@ -86,10 +89,11 @@ describe("presets", () => {
   });
 });
 
-describe("custom range", () => {
-  it("opens a two-month calendar", async () => {
+describe("custom date (in a dialog)", () => {
+  it("opens a 'Filter by' dialog with a two-month calendar", async () => {
     const { user } = await openCreatedDate();
-    await user.click(screen.getByRole("option", { name: /Custom range/ }));
+    await user.click(screen.getByRole("option", { name: /Custom date/ }));
+    expect(screen.getByRole("dialog", { name: "Filter by Created Date" })).toBeInTheDocument();
     expect(screen.getAllByRole("grid")).toHaveLength(2);
     expect(screen.getByText("March 2026")).toBeInTheDocument();
     expect(screen.getByText("April 2026")).toBeInTheDocument();
@@ -97,7 +101,7 @@ describe("custom range", () => {
 
   it("[T] Apply is disabled until both ends are picked", async () => {
     const { user, onChange } = await openCreatedDate();
-    await user.click(screen.getByRole("option", { name: /Custom range/ }));
+    await user.click(screen.getByRole("option", { name: /Custom date/ }));
     const apply = screen.getByRole("button", { name: "Apply" });
     expect(apply).toBeDisabled();
 
@@ -110,30 +114,23 @@ describe("custom range", () => {
 
     await user.click(apply);
     expect(applied()).toEqual({ createdAt: { kind: "custom", from: "2026-04-18", to: "2026-04-24" } });
+    // Applying closes the dialog and the popover.
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Created Date filter: Apr 18 – Apr 24. Edit" })).toBeInTheDocument();
   });
 
   it("allows a single-day range by clicking the same day twice", async () => {
     const { user } = await openCreatedDate();
-    await user.click(screen.getByRole("option", { name: /Custom range/ }));
+    await user.click(screen.getByRole("option", { name: /Custom date/ }));
     await user.click(day(/April 20th, 2026/));
     await user.click(day(/April 20th, 2026/));
     await user.click(screen.getByRole("button", { name: "Apply" }));
     expect(applied()).toEqual({ createdAt: { kind: "custom", from: "2026-04-20", to: "2026-04-20" } });
   });
 
-  it("Reset clears the picked range", async () => {
-    const { user } = await openCreatedDate();
-    await user.click(screen.getByRole("option", { name: /Custom range/ }));
-    await user.click(day(/April 18th, 2026/));
-    await user.click(day(/April 24th, 2026/));
-    await user.click(screen.getByRole("button", { name: "Reset" }));
-    expect(screen.getByRole("button", { name: "Apply" })).toBeDisabled();
-  });
-
   it("waits for Apply in instant mode too", async () => {
     const { user, onChange } = await openCreatedDate({ applyMode: "instant" });
-    await user.click(screen.getByRole("option", { name: /Custom range/ }));
+    await user.click(screen.getByRole("option", { name: /Custom date/ }));
     await user.click(day(/April 18th, 2026/));
     await user.click(day(/April 24th, 2026/));
     expect(onChange).not.toHaveBeenCalled();
@@ -145,7 +142,7 @@ describe("custom range", () => {
     const { user } = await openCreatedDate({
       defaultValue: { createdAt: { kind: "custom", from: "2026-01-05", to: "2026-01-09" } },
     });
-    const custom = screen.getByRole("option", { name: /Custom range/ });
+    const custom = screen.getByRole("option", { name: /Custom date/ });
     expect(custom).toHaveAttribute("aria-checked", "true");
     expect(custom).toHaveTextContent("Jan 5 – Jan 9");
 
@@ -154,17 +151,21 @@ describe("custom range", () => {
     expect(screen.getByRole("button", { name: "Apply" })).toBeEnabled();
   });
 
-  it("goes back to the presets", async () => {
+  it("closing the dialog with ✕ goes back to the presets", async () => {
     const { user } = await openCreatedDate();
-    await user.click(screen.getByRole("option", { name: /Custom range/ }));
-    await user.click(screen.getByRole("button", { name: "Presets" }));
-    expect(screen.getByRole("option", { name: "Last 7 days" })).toBeInTheDocument();
+    await user.click(screen.getByRole("option", { name: /Custom date/ }));
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog", { name: "Filter by Created Date" })).not.toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "1 week ago" })).toBeInTheDocument();
   });
 
-  it("Escape discards the picked range and closes", async () => {
+  it("Escape closes only the dialog, discarding the picked range; a second Escape closes the popover", async () => {
     const { user, onChange } = await openCreatedDate();
-    await user.click(screen.getByRole("option", { name: /Custom range/ }));
+    await user.click(screen.getByRole("option", { name: /Custom date/ }));
     await user.click(day(/April 18th, 2026/));
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: "Filter by Created Date" })).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Created Date filter" })).toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(onChange).not.toHaveBeenCalled();

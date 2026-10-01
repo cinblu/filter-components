@@ -9,7 +9,7 @@ test("filters sync to the URL and survive a reload", async ({ page }) => {
 
   // Apply a preset and a multi-select filter.
   await page.getByRole("button", { name: "Add Created Date filter" }).click();
-  await page.getByRole("option", { name: "Last 30 days" }).click();
+  await page.getByRole("option", { name: "1 month ago" }).click();
   // The table updates a moment after the toolbar (it's deferred), so wait for each new count.
   await expect(count).not.toHaveText("Showing 2,000 of 2,000");
   const afterDate = await count.textContent();
@@ -18,13 +18,13 @@ test("filters sync to the URL and survive a reload", async ({ page }) => {
   await page.getByRole("option", { name: "Failed" }).click();
   await page.getByRole("button", { name: "Apply", exact: true }).click();
 
-  await expect(page).toHaveURL(/\?createdAt=last30d&status=failed$/);
+  await expect(page).toHaveURL(/\?createdAt=last1m&status=failed$/);
   await expect(count).not.toHaveText(afterDate!);
   const filtered = await count.textContent();
 
   // Same URL in a fresh page load: same filters, same rows.
   await page.reload();
-  await expect(page.getByRole("button", { name: "Created Date filter: Last 30 days. Edit" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Created Date filter: 1 month ago. Edit" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Status filter: Failed. Edit" })).toBeVisible();
   await expect(count).toHaveText(filtered!);
 
@@ -37,7 +37,7 @@ test("filters sync to the URL and survive a reload", async ({ page }) => {
 test("column sorting is shown as a chip that stays visible when the table scrolls sideways", async ({ page }) => {
   await page.goto("/demo");
   const sortChip = page.getByRole("button", { name: /^Sorted by/ });
-  await expect(sortChip).toHaveAccessibleName("Sorted by Created Date, descending. Sort ascending");
+  await expect(sortChip).toHaveAccessibleName("Sorted by Created Date, Newest first. Change direction");
 
   // Sort by Pages from its column header.
   await page.getByRole("columnheader", { name: /Pages/ }).getByRole("button").click();
@@ -49,10 +49,15 @@ test("column sorting is shown as a chip that stays visible when the table scroll
   await expect(page.getByRole("columnheader", { name: /Batch ID/ })).not.toBeInViewport();
   await expect(sortChip).toBeInViewport();
 
-  // The chip flips the direction, and the header follows.
-  const direction = await page.getByRole("columnheader", { name: /Pages/ }).getAttribute("aria-sort");
+  // The chip's menu changes the direction, and the header follows.
+  const header = page.getByRole("columnheader", { name: /Pages/ });
+  const direction = await header.getAttribute("aria-sort");
   await sortChip.click();
-  await expect(page.getByRole("columnheader", { name: /Pages/ })).not.toHaveAttribute("aria-sort", direction!);
+  await page
+    .getByRole("dialog", { name: "Sort direction" })
+    .getByRole("option", { checked: false })
+    .click();
+  await expect(header).not.toHaveAttribute("aria-sort", direction!);
 
   // × removes the sort.
   await page.getByRole("button", { name: "Remove sort" }).click();

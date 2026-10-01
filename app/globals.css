@@ -54,7 +54,7 @@
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
+    --primary: oklch(0.5 0.11 165);
     --primary-foreground: oklch(0.985 0 0);
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
@@ -65,7 +65,7 @@
     --destructive: oklch(0.577 0.245 27.325);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --ring: oklch(0.6 0.12 165);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -89,8 +89,8 @@
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
+    --primary: oklch(0.75 0.13 165);
+    --primary-foreground: oklch(0.2 0.03 165);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
@@ -100,7 +100,7 @@
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    --ring: oklch(0.65 0.12 165);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -127,13 +127,21 @@
     @apply font-sans;
     }
 }
-/* Filter Bar component variables (SPEC §9). Components also carry these defaults as
-   fallbacks, so they work without this block. */
+/* Filter Bar component variables (SPEC §9). The registry item installs the same block.
+   Change these to restyle every chip and popover; --fb-density scales sizes and spacing. */
 :root {
   --fb-chip-height: 1.75rem;
   --fb-chip-radius: var(--radius-sm);
   --fb-chip-gap: 0.375rem;
   --fb-chip-border-style: dashed;
+  --fb-chip-min-width: 3.75rem;
+  --fb-chip-max-width: 25rem;
+  --fb-chip-font-size: 0.8125rem;
   --fb-popover-width: 18rem;
-  --fb-density: 1;
+  --fb-density: 1; /* 0.875 compact, 1 default, 1.125 comfortable */
+
+  /* Derived from the above; components use these. */
+  --fb-chip-h: calc(var(--fb-chip-height) * var(--fb-density));
+  --fb-chip-px: calc(0.5rem * var(--fb-density));
+  --fb-row-py: calc(0.375rem * var(--fb-density));
 }

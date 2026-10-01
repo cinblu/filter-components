@@ -102,8 +102,17 @@ describe("FilterBar layout (SPEC §4)", () => {
     expect(screen.queryByRole("button", { name: "Clear all" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Add Created Date filter" }));
-    await user.click(screen.getByRole("option", { name: "Last 7 days" }));
+    await user.click(screen.getByRole("option", { name: "1 week ago" }));
     expect(screen.getByRole("button", { name: "Clear all" })).toBeInTheDocument();
+  });
+
+  it("keeps Clear all's spot while it's hidden, so the count and actions never move", () => {
+    const { container } = render(<Harness />);
+    const hidden = container.querySelector("button[aria-hidden=true].invisible");
+    expect(hidden).toHaveTextContent("Clear all");
+    expect(hidden).toHaveAttribute("tabindex", "-1");
+    // It sits in the right-hand group with the count and actions, not among the filters.
+    expect(hidden?.parentElement).toContainElement(screen.getByText("Showing 42 of 1,200"));
   });
 
   it("[T] Clear all clears filters, not the search text and not the sort", async () => {
@@ -161,24 +170,61 @@ describe("SortChip (SPEC §8)", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("shows the column and the direction", () => {
+  it("reads '× Sort: Column  Direction ▾'", () => {
     render(<SortChip sort={sortByDate} onSortChange={() => {}} />);
-    const chip = screen.getByRole("button", { name: "Sorted by Created Date, descending. Sort ascending" });
-    expect(chip).toHaveTextContent("Created Date");
-    expect(chip.querySelector("svg")).toHaveClass("lucide-arrow-down");
+    const chip = screen.getByRole("button", { name: "Sorted by Created Date, Descending. Change direction" });
+    expect(chip).toHaveTextContent("Sort: Created DateDescending");
+    const remove = screen.getByRole("button", { name: "Remove sort" });
+    expect(remove.compareDocumentPosition(chip) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("[T] clicking the chip toggles the direction", async () => {
+  it("uses the sort's own direction words when given", () => {
+    render(
+      <SortChip
+        sort={{ ...sortByDate, directionLabels: { asc: "Oldest first", desc: "Newest first" } }}
+        onSortChange={() => {}}
+      />,
+    );
+    expect(screen.getByRole("button", { name: /^Sorted by/ })).toHaveTextContent("Newest first");
+  });
+
+  it("[T] clicking the chip opens a direction menu; choosing the other direction changes it", async () => {
     const user = userEvent.setup();
     const onSortChange = vi.fn();
-    const { rerender } = render(<SortChip sort={sortByDate} onSortChange={onSortChange} />);
+    render(<SortChip sort={sortByDate} onSortChange={onSortChange} />);
     await user.click(screen.getByRole("button", { name: /^Sorted by/ }));
-    expect(onSortChange).toHaveBeenLastCalledWith({ ...sortByDate, direction: "asc" });
+    const menu = screen.getByRole("dialog", { name: "Sort direction" });
+    expect(screen.getByRole("option", { name: "Descending" })).toHaveAttribute("aria-checked", "true");
+    await user.click(screen.getByRole("option", { name: "Ascending" }));
+    expect(onSortChange).toHaveBeenCalledExactlyOnceWith({ ...sortByDate, direction: "asc" });
+    expect(menu).not.toBeInTheDocument();
+  });
 
-    rerender(<SortChip sort={{ ...sortByDate, direction: "asc" }} onSortChange={onSortChange} />);
-    expect(screen.getByRole("button", { name: /^Sorted by/ }).querySelector("svg")).toHaveClass("lucide-arrow-up");
+  it("works from the keyboard", async () => {
+    const user = userEvent.setup();
+    const onSortChange = vi.fn();
+    render(<SortChip sort={sortByDate} onSortChange={onSortChange} />);
+    screen.getByRole("button", { name: /^Sorted by/ }).focus();
+    await user.keyboard("{Enter}");
+    await user.keyboard("{ArrowUp}{Enter}");
+    expect(onSortChange).toHaveBeenCalledExactlyOnceWith({ ...sortByDate, direction: "asc" });
+  });
+
+  it("returns focus to the chip after choosing", async () => {
+    const user = userEvent.setup();
+    render(<Harness initialSort={sortByDate} />);
     await user.click(screen.getByRole("button", { name: /^Sorted by/ }));
-    expect(onSortChange).toHaveBeenLastCalledWith(sortByDate);
+    await user.click(screen.getByRole("option", { name: "Ascending" }));
+    expect(screen.getByRole("button", { name: /^Sorted by/ })).toHaveFocus();
+  });
+
+  it("choosing the current direction just closes", async () => {
+    const user = userEvent.setup();
+    const onSortChange = vi.fn();
+    render(<SortChip sort={sortByDate} onSortChange={onSortChange} />);
+    await user.click(screen.getByRole("button", { name: /^Sorted by/ }));
+    await user.click(screen.getByRole("option", { name: "Descending" }));
+    expect(onSortChange).not.toHaveBeenCalled();
   });
 
   it("[T] × clears the sort", async () => {
@@ -189,10 +235,11 @@ describe("SortChip (SPEC §8)", () => {
     expect(onSortChange).toHaveBeenCalledExactlyOnceWith(undefined);
   });
 
-  it("toggles and clears inside the FilterBar", async () => {
+  it("changes and clears inside the FilterBar", async () => {
     const user = userEvent.setup();
     render(<Harness initialSort={sortByDate} />);
     await user.click(screen.getByRole("button", { name: /^Sorted by/ }));
+    await user.click(screen.getByRole("option", { name: "Ascending" }));
     expect(state().sort.direction).toBe("asc");
     await user.click(screen.getByRole("button", { name: "Remove sort" }));
     expect(state().sort).toBeUndefined();

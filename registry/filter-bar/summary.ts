@@ -1,25 +1,20 @@
-// Text shown on a set chip (SPEC §5): "Status: Open, +2", "Created Date: Last 7 days".
-// Also used by the More Filters menu to show what an applied filter is set to.
+// What a set chip says (SPEC §5): "Status  3 items", "Created Date  1 week ago".
+// Also used by the More Filters menu, and for the chip's hover tooltip.
 
 import { format, parseISO } from "date-fns";
 
 import { getLoadedOptions, getOptionLabel } from "./options";
-import { DATE_PRESET_LABELS } from "./presets";
+import { DATE_PRESET_LABELS, resolvePreset } from "./presets";
 import type { DateRangeValue, FilterDefinition, FilterValue } from "./types";
 import { isEmptyValue } from "./use-filters";
 
-export const SUMMARY_MAX_LENGTH = 24;
-
 export interface FilterSummary {
-  /** Short text for the chip, at most SUMMARY_MAX_LENGTH characters. */
+  /** The value shown on the chip. Long values are cut off by the chip's max width (CSS). */
   short: string;
-  /** Everything, for the title attribute and the aria-label. */
+  /** Everything, for the aria-label. */
   full: string;
-}
-
-/** Cuts text to `max` characters, ending in an ellipsis when it was cut. */
-export function truncate(text: string, max = SUMMARY_MAX_LENGTH): string {
-  return text.length <= max ? text : `${text.slice(0, max - 1).trimEnd()}…`;
+  /** Tooltip text: the full value, or for date presets the dates they cover right now. */
+  tooltip: string;
 }
 
 /** "Apr 18 – Apr 24". The year is added only when the range isn't within the current year. */
@@ -33,7 +28,17 @@ export function formatDateRange(value: DateRangeValue, now: Date = new Date()): 
   return `${format(from, pattern)} – ${format(to, pattern)}`;
 }
 
-/** Selected values in option order, so "Open, +2" names the same first item however it was picked. */
+/** The exact span a date value covers, e.g. "2026-04-18 12:00 AM – 2026-04-24 11:59 PM". */
+export function formatDateRangeDetail(value: DateRangeValue, now: Date = new Date()): string {
+  const pattern = "yyyy-MM-dd h:mm a";
+  if (value.kind === "custom") {
+    return `${format(parseISO(value.from), "yyyy-MM-dd")} – ${format(parseISO(value.to), "yyyy-MM-dd")}`;
+  }
+  const { from, to } = resolvePreset(value.preset, now);
+  return `${format(from, pattern)} – ${format(to, pattern)}`;
+}
+
+/** Selected values in option order, so the list reads the same however it was picked. */
 function selectedLabels(definition: FilterDefinition, values: string[]): string[] {
   const options = getLoadedOptions(definition) ?? [];
   const position = new Map(options.map((o, i) => [o.value, i]));
@@ -49,24 +54,18 @@ export function getFilterSummary(
 ): FilterSummary | null {
   if (isEmptyValue(value)) return null;
 
-  let short: string;
-  let full: string;
   if (Array.isArray(value)) {
     const labels = selectedLabels(definition, value);
-    full = labels.join(", ");
-    if (labels.length === 1) {
-      short = labels[0];
-    } else {
-      // Truncate the first label rather than the whole text, so the "+2" is never cut off.
-      const rest = `, +${labels.length - 1}`;
-      short = truncate(labels[0], SUMMARY_MAX_LENGTH - rest.length) + rest;
-    }
-  } else if (typeof value === "string") {
-    full = definition.type === "singleSelect" ? getOptionLabel(definition, value) : value;
-    short = full;
-  } else {
-    full = formatDateRange(value, now);
-    short = full;
+    const full = labels.join(", ");
+    // One value reads as itself; more than one becomes a count, listed in the tooltip.
+    const short = labels.length === 1 ? labels[0] : `${labels.length} items`;
+    return { short, full, tooltip: full };
   }
-  return { short: truncate(short), full };
+  if (typeof value === "string") {
+    const full = definition.type === "singleSelect" ? getOptionLabel(definition, value) : value;
+    return { short: full, full, tooltip: full };
+  }
+  const short = formatDateRange(value, now);
+  const detail = formatDateRangeDetail(value, now);
+  return { short, full: short, tooltip: detail };
 }

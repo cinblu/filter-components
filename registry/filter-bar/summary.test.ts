@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getFilterSummary, truncate } from "./summary";
+import { getFilterSummary } from "./summary";
 import type { FilterDefinition } from "./types";
 
 const now = new Date(2026, 3, 24, 15, 30);
@@ -11,9 +11,9 @@ const status: FilterDefinition = {
   type: "multiSelect",
   tier: "quick",
   options: [
-    { value: "open", label: "Open" },
+    { value: "todo", label: "To-do" },
     { value: "pending", label: "Pending" },
-    { value: "closed", label: "Closed" },
+    { value: "done", label: "Completed" },
   ],
 };
 const workflow: FilterDefinition = {
@@ -33,53 +33,64 @@ const batchId: FilterDefinition = { id: "batchId", label: "Batch ID", type: "tex
 
 describe("[T] chip summary rules (SPEC §5)", () => {
   it("multiSelect with 1 value → the option label", () => {
-    expect(getFilterSummary(status, ["open"], now)).toEqual({ short: "Open", full: "Open" });
-  });
-
-  it("multiSelect with 2+ values → first label, +N", () => {
-    expect(getFilterSummary(status, ["open", "pending", "closed"], now)).toEqual({
-      short: "Open, +2",
-      full: "Open, Pending, Closed",
+    expect(getFilterSummary(status, ["todo"], now)).toEqual({
+      short: "To-do",
+      full: "To-do",
+      tooltip: "To-do",
     });
   });
 
-  it("multiSelect names the first selected value in option order, however it was picked", () => {
-    expect(getFilterSummary(status, ["closed", "open"], now)?.short).toBe("Open, +1");
+  it("multiSelect with 2+ values → 'N items', with every label in the tooltip", () => {
+    expect(getFilterSummary(status, ["todo", "pending", "done"], now)).toEqual({
+      short: "3 items",
+      full: "To-do, Pending, Completed",
+      tooltip: "To-do, Pending, Completed",
+    });
+  });
+
+  it("lists multiSelect values in option order, however they were picked", () => {
+    expect(getFilterSummary(status, ["done", "todo"], now)?.tooltip).toBe("To-do, Completed");
   });
 
   it("singleSelect → the option label", () => {
     expect(getFilterSummary(workflow, "two-step", now)?.short).toBe("Two-step Approval");
   });
 
-  it("dateRange preset → the preset label", () => {
-    expect(getFilterSummary(createdAt, { kind: "preset", preset: "last7d" }, now)?.short).toBe(
-      "Last 7 days",
-    );
+  it("dateRange preset → the preset label; the tooltip shows the dates it covers now", () => {
+    expect(getFilterSummary(createdAt, { kind: "preset", preset: "last7d" }, now)).toEqual({
+      short: "1 week ago",
+      full: "1 week ago",
+      tooltip: "2026-04-18 12:00 AM – 2026-04-24 11:59 PM",
+    });
   });
 
   it("dateRange custom in the current year → no year", () => {
     expect(
-      getFilterSummary(createdAt, { kind: "custom", from: "2026-04-18", to: "2026-04-24" }, now)
-        ?.short,
-    ).toBe("Apr 18 – Apr 24");
+      getFilterSummary(createdAt, { kind: "custom", from: "2026-04-18", to: "2026-04-24" }, now),
+    ).toEqual({
+      short: "Apr 18 – Apr 24",
+      full: "Apr 18 – Apr 24",
+      tooltip: "2026-04-18 – 2026-04-24",
+    });
   });
 
   it("dateRange custom outside the current year → with the year", () => {
     expect(
       getFilterSummary(createdAt, { kind: "custom", from: "2025-04-18", to: "2025-04-24" }, now)
-        ?.full,
+        ?.short,
     ).toBe("Apr 18, 2025 – Apr 24, 2025");
   });
 
   it("dateRange custom spanning into the current year → with the year", () => {
     expect(
       getFilterSummary(createdAt, { kind: "custom", from: "2025-12-29", to: "2026-01-04" }, now)
-        ?.full,
+        ?.short,
     ).toBe("Dec 29, 2025 – Jan 4, 2026");
   });
 
-  it("text → the text", () => {
-    expect(getFilterSummary(batchId, "B-10042", now)?.short).toBe("B-10042");
+  it("text → the text, untruncated (the chip's max width cuts it off visually)", () => {
+    const long = "A very long batch identifier value that goes on";
+    expect(getFilterSummary(batchId, long, now)).toEqual({ short: long, full: long, tooltip: long });
   });
 
   it("returns null when the value is empty", () => {
@@ -90,33 +101,5 @@ describe("[T] chip summary rules (SPEC §5)", () => {
 
   it("falls back to the raw value for values that aren't options", () => {
     expect(getFilterSummary(status, ["archived"], now)?.short).toBe("archived");
-  });
-});
-
-describe("[T] truncation at 24 characters", () => {
-  it("truncates long summaries with an ellipsis and keeps the full text", () => {
-    const long = "A very long batch identifier value";
-    const summary = getFilterSummary(batchId, long, now)!;
-    expect(summary.short).toHaveLength(24);
-    expect(summary.short.endsWith("…")).toBe(true);
-    expect(summary.full).toBe(long);
-  });
-
-  it("leaves summaries of 24 characters or fewer alone", () => {
-    expect(truncate("x".repeat(24))).toBe("x".repeat(24));
-    expect(truncate("x".repeat(25))).toBe(`${"x".repeat(23)}…`);
-  });
-
-  it("keeps the +N visible when the first label is long", () => {
-    const queues: FilterDefinition = {
-      ...status,
-      options: [
-        { value: "a", label: "Correspondence and Vendor Invoices" },
-        { value: "b", label: "Billing" },
-      ],
-    };
-    const summary = getFilterSummary(queues, ["a", "b"], now)!;
-    expect(summary.short).toMatch(/…, \+1$/);
-    expect(summary.short.length).toBeLessThanOrEqual(24);
   });
 });

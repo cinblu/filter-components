@@ -1,21 +1,34 @@
 // A filter chip (SPEC §5).
 //
-// Unset: a dashed "+ Created Date" button.
-// Set:   a filled "Created Date: Last 7 days" button plus a trailing × button.
+// Unset:  [+ Created Date]                 dashed; the whole chip opens the editor
+// Set:    [× Created Date  1 week ago ▾]   solid; × clears, the rest opens the editor
 //
-// The chip body opens the editor in a popover anchored to the whole chip. The editor is
-// passed as children; a render function gets `close()` so it can close after applying.
+// The leading icon is the same element in both states: the + turns 45° into the ×, so
+// setting a filter reads as one continuous change. The value is in the primary colour and is
+// cut off with an ellipsis at the chip's max width; the tooltip shows it in full. The chevron
+// points up while the editor is open.
 
 "use client";
 
-import { PlusIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, PlusIcon } from "lucide-react";
 import { type ReactNode, type RefObject, useLayoutEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
+import {
+  POPOVER_OFFSET,
+  chipBase,
+  chipSet,
+  chipTransition,
+  chipUnset,
+  popoverMotion,
+} from "./styles";
 import { getFilterSummary } from "./summary";
 import type { FilterDefinition, FilterValue } from "./types";
+
+export const TOOLTIP_DELAY_MS = 400;
 
 export interface FilterChipProps {
   definition: FilterDefinition;
@@ -51,24 +64,26 @@ export function FilterChip({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLSpanElement>(null);
   const width = useMeasuredWidth(contentRef);
+  const tooltip = useChipTooltip(open);
 
   const summary = getFilterSummary(definition, value);
   const isSet = summary !== null;
   const { label } = definition;
+  const tooltipText = isSet ? summary.tooltip : definition.description;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverAnchor asChild>
         {/*
           The outer box animates its width to match the content, so when a chip goes from
-          "+ Status" to "Status: Open ×" its neighbours slide over instead of jumping.
+          "+ Status" to "× Status  Open ▾" its neighbours slide over instead of jumping.
         */}
         <span
           data-slot="filter-chip"
           data-state={isSet ? "set" : "unset"}
           style={{ width }}
           className={cn(
-            "inline-flex shrink-0 overflow-hidden rounded-[var(--fb-chip-radius,var(--radius-sm))]",
+            "inline-flex max-w-(--fb-chip-max-width) min-w-(--fb-chip-min-width) shrink-0 overflow-hidden rounded-(--fb-chip-radius)",
             "transition-[width] duration-150 ease-out motion-reduce:transition-none",
             "has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
             className,
@@ -76,65 +91,110 @@ export function FilterChip({
         >
           <span
             ref={contentRef}
-            className={cn(
-              "inline-flex h-[var(--fb-chip-height,1.75rem)] w-max items-center rounded-[inherit] border text-sm whitespace-nowrap",
-              "transition-[background-color,border-color,color] duration-150 ease-out motion-reduce:transition-none",
-              isSet
-                ? "border-transparent bg-secondary text-secondary-foreground"
-                : "border-border text-muted-foreground [border-style:var(--fb-chip-border-style,dashed)] hover:bg-muted hover:text-foreground",
-            )}
+            className={cn(chipBase, chipTransition, "w-max", isSet ? chipSet : chipUnset)}
           >
-            <PopoverTrigger asChild>
-              <button
-                ref={triggerRef}
-                type="button"
-                aria-label={isSet ? `${label} filter: ${summary.full}. Edit` : `Add ${label} filter`}
-                title={isSet ? `${label}: ${summary.full}` : undefined}
+            <button
+              type="button"
+              // Unset, the + is just part of the "add" button: hidden from assistive tech and
+              // skipped by Tab, but clicking it still opens the editor.
+              aria-label={isSet ? `Remove ${label} filter` : undefined}
+              aria-hidden={isSet ? undefined : true}
+              tabIndex={isSet ? undefined : -1}
+              onClick={() => {
+                if (!isSet) return setOpen(true);
+                onRemove();
+                // The × becomes a decorative + again, so keep focus on the chip body.
+                triggerRef.current?.focus();
+              }}
+              className={cn(
+                "inline-flex h-full shrink-0 items-center rounded-l-[inherit] pr-0.5 pl-(--fb-chip-px) outline-none",
+                isSet && "text-muted-foreground hover:text-foreground focus-visible:text-foreground",
+              )}
+            >
+              <PlusIcon
+                aria-hidden
                 className={cn(
-                  "inline-flex h-full items-center gap-1 outline-none",
-                  isSet ? "pr-1 pl-2.5" : "px-2.5",
+                  "size-3.5 transition-transform duration-150 ease-out motion-reduce:transition-none",
+                  isSet && "rotate-45",
                 )}
-              >
-                {isSet ? (
-                  <>
-                    <span className="text-muted-foreground">{label}:</span>
-                    <span className="font-medium">{summary.short}</span>
-                  </>
-                ) : (
-                  <>
-                    <PlusIcon aria-hidden className="size-3.5" />
-                    {label}
-                  </>
-                )}
-              </button>
-            </PopoverTrigger>
-            {isSet && (
-              <button
-                type="button"
-                aria-label={`Remove ${label} filter`}
-                onClick={() => {
-                  onRemove();
-                  // The × disappears with the filter, so keep focus on the chip.
-                  triggerRef.current?.focus();
-                }}
-                className="mr-1 inline-flex size-5 items-center justify-center rounded-sm text-muted-foreground outline-none hover:bg-background/60 hover:text-foreground focus-visible:text-foreground"
-              >
-                <XIcon aria-hidden className="size-3.5" />
-              </button>
-            )}
+              />
+            </button>
+            <TooltipProvider delayDuration={TOOLTIP_DELAY_MS}>
+              <Tooltip open={tooltip.open && Boolean(tooltipText)} onOpenChange={tooltip.onOpenChange}>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
+                    <button
+                      ref={triggerRef}
+                      type="button"
+                      onPointerEnter={tooltip.onPointerEnter}
+                      aria-label={isSet ? `${label} filter: ${summary.full}. Edit` : `Add ${label} filter`}
+                      className="inline-flex h-full min-w-0 items-center gap-1.5 rounded-r-[inherit] pr-(--fb-chip-px) outline-none"
+                    >
+                      <span className="shrink-0">{label}</span>
+                      {isSet && (
+                        <>
+                          <span className="min-w-0 truncate font-medium text-primary">
+                            {summary.short}
+                          </span>
+                          <ChevronDownIcon
+                            aria-hidden
+                            className={cn(
+                              "-ml-0.5 size-3.5 shrink-0 text-primary transition-transform duration-150 ease-out motion-reduce:transition-none",
+                              open && "rotate-180",
+                            )}
+                          />
+                        </>
+                      )}
+                    </button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="bottom"
+                  sideOffset={POPOVER_OFFSET}
+                  className={cn("max-w-sm", popoverMotion)}
+                >
+                  {tooltipText}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </span>
         </span>
       </PopoverAnchor>
       <PopoverContent
         align="start"
+        sideOffset={POPOVER_OFFSET}
         collisionPadding={8}
         aria-label={`${label} filter`}
-        className="w-auto gap-0 overflow-hidden p-0"
+        className={cn("w-auto gap-0 overflow-hidden p-0", popoverMotion)}
       >
         {typeof children === "function" ? children({ close: () => setOpen(false) }) : children}
       </PopoverContent>
     </Popover>
   );
+}
+
+/**
+ * Tooltip state for a chip: hover/focus shows it, but not while the editor is open, and not
+ * when focus comes back to the chip as the editor closes (that would pop it up unasked).
+ */
+function useChipTooltip(editorOpen: boolean) {
+  const [open, setOpen] = useState(false);
+  const [suppressed, setSuppressed] = useState(false);
+  const [wasEditorOpen, setWasEditorOpen] = useState(editorOpen);
+  if (editorOpen !== wasEditorOpen) {
+    setWasEditorOpen(editorOpen);
+    if (!editorOpen) setSuppressed(true);
+  }
+  return {
+    open: open && !editorOpen && !suppressed,
+    onOpenChange: (next: boolean) => {
+      setOpen(next);
+      // Once the tooltip would close (pointer leaves, focus moves), it may show again.
+      if (!next) setSuppressed(false);
+    },
+    // A deliberate hover always counts.
+    onPointerEnter: () => setSuppressed(false),
+  };
 }
 
 /**

@@ -1,8 +1,11 @@
-// The toolbar (SPEC §4). One row, left to right:
+// The toolbar (SPEC §4). Two areas on one row:
 //
-//   [title] [search] [quick chips…] [active more chips…] [+ More Filters] [sort] [Clear all] ··· [count] [actions]
+//   [title] [search] [quick chips…] [active more chips…] [+ More Filters] [sort]  ···  [Clear all] [count] [actions]
+//   └──────────────────────── filters: wraps within its own area ────────────┘       └── fixed, right-aligned ──┘
 //
-// It wraps onto a second line when there isn't room, and never scrolls sideways.
+// The filters wrap inside the left area, so Clear all, the count and the actions never move.
+// Clear all keeps its space while hidden, so it always appears in the same spot. On narrow
+// screens the right group drops below. Nothing scrolls sideways.
 
 "use client";
 
@@ -56,42 +59,49 @@ export function FilterBar({
   // Quick filters always show; more-tier filters only while applied (SPEC §4).
   const chips = [...filters.quickFilters, ...filters.activeMoreFilters];
 
+  const hasFilters = filters.activeCount > 0;
+
   return (
     <div
       role="group"
       aria-label="Filters"
       data-slot="filter-bar"
-      className={cn("flex flex-wrap items-center gap-[var(--fb-chip-gap,0.375rem)]", className)}
+      className={cn("flex flex-wrap items-start gap-x-4 gap-y-2", className)}
     >
-      {title && <div className="mr-1.5 shrink-0">{title}</div>}
-      {search && <SearchInput {...search} />}
-      {chips.map((definition) => (
-        <FilterBarChip key={definition.id} filters={filters} definition={definition} />
-      ))}
-      {filters.moreFilters.length > 0 && <MoreFiltersMenu filters={filters} />}
-      {sort && onSortChange && <SortChip sort={sort} onSortChange={onSortChange} />}
-      {filters.activeCount > 0 && (
-        // Clears filters only. Search and sort are left alone (SPEC decision 5).
+      <div className="flex min-w-0 flex-1 basis-[min(100%,18rem)] flex-wrap items-center gap-(--fb-chip-gap)">
+        {title && <div className="mr-1.5 flex h-(--fb-chip-h) shrink-0 items-center">{title}</div>}
+        {search && <SearchInput {...search} />}
+        {chips.map((definition) => (
+          <FilterBarChip key={definition.id} filters={filters} definition={definition} />
+        ))}
+        {filters.moreFilters.length > 0 && <MoreFiltersMenu filters={filters} />}
+        {sort && onSortChange && <SortChip sort={sort} onSortChange={onSortChange} />}
+      </div>
+
+      <div className="ml-auto flex h-(--fb-chip-h) shrink-0 items-center gap-3">
+        {/* Clears filters only; search and sort stay (SPEC decision 5). Hidden, not removed,
+            when nothing is set, so it doesn't shift the count and actions. */}
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={filters.clearAll}
-          className="h-[var(--fb-chip-height,1.75rem)] px-2 text-muted-foreground"
+          aria-hidden={hasFilters ? undefined : true}
+          tabIndex={hasFilters ? undefined : -1}
+          className={cn(
+            "h-(--fb-chip-h) px-(--fb-chip-px) text-(length:--fb-chip-font-size) text-muted-foreground",
+            !hasFilters && "invisible",
+          )}
         >
           Clear all
         </Button>
-      )}
-      {(resultCount || actions) && (
-        <div className="ml-auto flex shrink-0 items-center gap-3">
-          {resultCount && (
-            <p aria-live="polite" className="text-sm text-muted-foreground tabular-nums">
-              Showing {resultCount.shown.toLocaleString()} of {resultCount.total.toLocaleString()}
-            </p>
-          )}
-          {actions}
-        </div>
-      )}
+        {resultCount && (
+          <p aria-live="polite" className="text-(length:--fb-chip-font-size) text-muted-foreground tabular-nums">
+            Showing {resultCount.shown.toLocaleString()} of {resultCount.total.toLocaleString()}
+          </p>
+        )}
+        {actions}
+      </div>
     </div>
   );
 }
@@ -166,7 +176,7 @@ function SearchInput({
         onChange={(event) => setText(event.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="h-[var(--fb-chip-height,1.75rem)] pl-7 text-sm"
+        className="h-(--fb-chip-h) rounded-(--fb-chip-radius) pl-7 text-(length:--fb-chip-font-size) focus-visible:border-primary"
       />
     </div>
   );
