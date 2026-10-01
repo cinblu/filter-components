@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
-import { popoverMotion } from "../styles";
+import { accentScope, popoverMotion } from "../styles";
 
 export interface FilterDialogProps {
   open: boolean;
@@ -26,7 +26,7 @@ export interface FilterDialogProps {
 export function FilterDialog({ open, onOpenChange, label, children, className }: FilterDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("gap-0 p-0 sm:max-w-md", popoverMotion, className)}>
+      <DialogContent className={cn("gap-0 p-0 sm:max-w-md", accentScope, popoverMotion, className)}>
         <div className="border-b px-4 py-3 pr-10">
           <DialogTitle className="text-sm font-medium">Filter by {label}</DialogTitle>
           <DialogDescription className="sr-only">

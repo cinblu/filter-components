@@ -20,6 +20,7 @@ import { FilterEditorPanel } from "./editors/filter-editor";
 import { FilterChip } from "./filter-chip";
 import { MoreFiltersMenu } from "./more-filters-menu";
 import { SortChip } from "./sort-chip";
+import { accentScope } from "./styles";
 import type { FilterDefinition, SortState } from "./types";
 import type { UseFiltersResult } from "./use-filters";
 
@@ -43,6 +44,8 @@ export interface FilterBarProps {
   resultCount?: { shown: number; total: number };
   /** Right-aligned slot, e.g. export or view buttons. */
   actions?: ReactNode;
+  /** Hover tooltips on chips (full values, and each definition's description). Default true. */
+  tooltips?: boolean;
   className?: string;
 }
 
@@ -54,6 +57,7 @@ export function FilterBar({
   onSortChange,
   resultCount,
   actions,
+  tooltips = true,
   className,
 }: FilterBarProps) {
   // Quick filters always show; more-tier filters only while applied (SPEC §4).
@@ -66,13 +70,18 @@ export function FilterBar({
       role="group"
       aria-label="Filters"
       data-slot="filter-bar"
-      className={cn("flex flex-wrap items-start gap-x-4 gap-y-2", className)}
+      className={cn("flex flex-wrap items-start gap-x-4 gap-y-2", accentScope, className)}
     >
       <div className="flex min-w-0 flex-1 basis-[min(100%,18rem)] flex-wrap items-center gap-(--fb-chip-gap)">
         {title && <div className="mr-1.5 flex h-(--fb-chip-h) shrink-0 items-center">{title}</div>}
         {search && <SearchInput {...search} />}
         {chips.map((definition) => (
-          <FilterBarChip key={definition.id} filters={filters} definition={definition} />
+          <FilterBarChip
+            key={definition.id}
+            filters={filters}
+            definition={definition}
+            tooltip={tooltips}
+          />
         ))}
         {filters.moreFilters.length > 0 && <MoreFiltersMenu filters={filters} />}
         {sort && onSortChange && <SortChip sort={sort} onSortChange={onSortChange} />}
@@ -110,9 +119,11 @@ export function FilterBar({
 export function FilterBarChip({
   filters,
   definition,
+  tooltip = true,
 }: {
   filters: UseFiltersResult;
   definition: FilterDefinition;
+  tooltip?: boolean;
 }) {
   const editor = filters.openEditor(definition.id);
   return (
@@ -120,6 +131,7 @@ export function FilterBarChip({
       definition={definition}
       value={filters.applied[definition.id]}
       onRemove={() => filters.clear(definition.id)}
+      tooltip={tooltip}
       // Escape, clicking outside and closing after Apply all end here. After Apply there is
       // nothing pending, so this only throws away edits that weren't applied.
       onOpenChange={(open) => {

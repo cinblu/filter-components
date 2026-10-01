@@ -13,7 +13,15 @@ import { cn } from "@/lib/utils";
 import { Command, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { POPOVER_OFFSET, chipBase, chipSet, chipTransition, popoverMotion, rowPadding } from "./styles";
+import {
+  POPOVER_OFFSET,
+  accentScope,
+  chipBase,
+  chipSet,
+  chipTransition,
+  popoverMotion,
+  rowPadding,
+} from "./styles";
 import type { SortState } from "./types";
 
 export interface SortChipProps {
@@ -42,6 +50,7 @@ export function SortChip({ sort, onSortChange, className }: SortChipProps) {
             chipSet,
             chipTransition,
             "has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
+            accentScope,
             className,
           )}
         >
@@ -78,7 +87,7 @@ export function SortChip({ sort, onSortChange, className }: SortChipProps) {
         sideOffset={POPOVER_OFFSET}
         collisionPadding={8}
         aria-label="Sort direction"
-        className={cn("w-auto min-w-44 gap-0 overflow-hidden p-0", popoverMotion)}
+        className={cn("w-auto min-w-44 gap-0 overflow-hidden p-0", accentScope, popoverMotion)}
         // The list has no input, so focus it directly for the arrow keys.
         onOpenAutoFocus={(event) => {
           event.preventDefault();

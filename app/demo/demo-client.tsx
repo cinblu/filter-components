@@ -7,5 +7,5 @@ import dynamic from "next/dynamic";
 // the server would show the wrong rows first and then swap them.
 export const DemoClient = dynamic(() => import("./demo-table").then((m) => m.DemoTable), {
   ssr: false,
-  loading: () => <div className="h-dvh" />,
+  loading: () => <div className="flex-1" />,
 });

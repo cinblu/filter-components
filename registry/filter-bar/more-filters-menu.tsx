@@ -24,6 +24,7 @@ import { FilterEditorPanel } from "./editors/filter-editor";
 import { TextEditor } from "./editors/text";
 import {
   POPOVER_OFFSET,
+  accentScope,
   chipBase,
   chipTransition,
   chipUnset,
@@ -152,6 +153,7 @@ export function MoreFiltersMenu({ filters, label = "More Filters", className }: 
         // A transparent wrapper around two cards: the list, and the editor 8px to its right.
         className={cn(
           "w-auto flex-row items-start gap-2 bg-transparent p-0 shadow-none ring-0",
+          accentScope,
           popoverMotion,
         )}
         // Escape inside an editor goes back to the list instead of closing the menu.

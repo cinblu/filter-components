@@ -4,6 +4,7 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { FilterBar, SEARCH_DEBOUNCE_MS } from "./filter-bar";
+import { TOOLTIP_DELAY_MS } from "./filter-chip";
 import { SortChip } from "./sort-chip";
 import { createdAtDefinition, moreDefinitions, queueDefinition, statusDefinition } from "./test-utils";
 import type { FilterState, SortState } from "./types";
@@ -134,6 +135,30 @@ describe("FilterBar layout (SPEC §4)", () => {
   it("announces the result count politely", () => {
     render(<Harness />);
     expect(screen.getByText("Showing 42 of 1,200")).toHaveAttribute("aria-live", "polite");
+  });
+});
+
+describe("tooltips prop", () => {
+  function Bare({ tooltips }: { tooltips?: boolean }) {
+    const filters = useFilters({ definitions, defaultValue: { status: ["open", "closed"] } });
+    return <FilterBar filters={filters} tooltips={tooltips} />;
+  }
+  const hoverStatus = async () => {
+    const user = userEvent.setup();
+    await user.hover(screen.getByRole("button", { name: /^Status filter:/ }));
+    await act(() => new Promise((resolve) => setTimeout(resolve, TOOLTIP_DELAY_MS + 100)));
+  };
+
+  it("shows chip tooltips by default", async () => {
+    render(<Bare />);
+    await hoverStatus();
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Open, Closed");
+  });
+
+  it("tooltips={false} turns them off", async () => {
+    render(<Bare tooltips={false} />);
+    await hoverStatus();
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
 });
 

@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // ↑/↓ move, → or Enter opens the editor, ← or Escape in the editor returns to the list,
 // Escape on the list closes the menu, applying in the editor closes the menu.
 test("More Filters: full keyboard flow", async ({ page }) => {
-  await page.goto("/playground");
+  await page.goto("/demo");
 
   const trigger = page.getByRole("button", { name: "More Filters" });
   const menu = page.getByRole("dialog", { name: "More Filters" });

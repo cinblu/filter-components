@@ -19,6 +19,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 import {
   POPOVER_OFFSET,
+  accentScope,
   chipBase,
   chipSet,
   chipTransition,
@@ -42,6 +43,8 @@ export interface FilterChipProps {
   onOpenChange?: (open: boolean) => void;
   /** The editor. A function receives `close()` for closing after Apply. */
   children: ReactNode | ((api: { close: () => void }) => ReactNode);
+  /** Show hover tooltips (the full value, or the definition's description). Default true. */
+  tooltip?: boolean;
   className?: string;
 }
 
@@ -52,6 +55,7 @@ export function FilterChip({
   open: openProp,
   onOpenChange,
   children,
+  tooltip: tooltipEnabled = true,
   className,
 }: FilterChipProps) {
   const [openState, setOpenState] = useState(false);
@@ -69,7 +73,7 @@ export function FilterChip({
   const summary = getFilterSummary(definition, value);
   const isSet = summary !== null;
   const { label } = definition;
-  const tooltipText = isSet ? summary.tooltip : definition.description;
+  const tooltipText = tooltipEnabled ? (isSet ? summary.tooltip : definition.description) : undefined;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -86,6 +90,7 @@ export function FilterChip({
             "inline-flex max-w-(--fb-chip-max-width) min-w-(--fb-chip-min-width) shrink-0 overflow-hidden rounded-(--fb-chip-radius)",
             "transition-[width] duration-150 ease-out motion-reduce:transition-none",
             "has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
+            accentScope,
             className,
           )}
         >
@@ -165,7 +170,7 @@ export function FilterChip({
         sideOffset={POPOVER_OFFSET}
         collisionPadding={8}
         aria-label={`${label} filter`}
-        className={cn("w-auto gap-0 overflow-hidden p-0", popoverMotion)}
+        className={cn("w-auto gap-0 overflow-hidden p-0", accentScope, popoverMotion)}
       >
         {typeof children === "function" ? children({ close: () => setOpen(false) }) : children}
       </PopoverContent>

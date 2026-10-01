@@ -16,21 +16,15 @@ import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { memo, useDeferredValue, useMemo, useRef, useState } from "react";
 
+import { useSiteSettings } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
-import {
-  ASSIGNEES,
-  type DemoRow,
-  QUEUES,
-  SOURCES,
-  STATUSES,
-  WORKFLOWS,
-  generateDemoRows,
-} from "@/lib/demo-data";
+import { type DemoRow, generateDemoRows } from "@/lib/demo-data";
+import { demoFilterDefinitions as definitions, slug } from "@/lib/demo-filters";
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/registry/filter-bar/filter-bar";
-import type { FilterDefinition, FilterOption, SortState } from "@/registry/filter-bar/types";
+import type { SortState } from "@/registry/filter-bar/types";
 import { useFilterUrlState } from "@/registry/filter-bar/url-state";
-import { type ApplyMode, useFilters } from "@/registry/filter-bar/use-filters";
+import { useFilters } from "@/registry/filter-bar/use-filters";
 import {
   dateRangeFn,
   multiSelectFn,
@@ -38,22 +32,6 @@ import {
   textFn,
   toColumnFilters,
 } from "@/registry/filter-bar-tanstack/adapter";
-
-// Option values are URL-friendly slugs ("legal-review"); labels are what people see.
-const slug = (label: string) => label.toLowerCase().replace(/\s+/g, "-");
-const toOptions = (labels: readonly string[]): FilterOption[] =>
-  labels.map((label) => ({ value: slug(label), label }));
-
-// SPEC §12: quick = Created Date, Queue, Status. More = Workflow, Assignee, Source, Batch ID.
-const definitions: FilterDefinition[] = [
-  { id: "createdAt", label: "Created Date", type: "dateRange", tier: "quick", description: "When the batch arrived" },
-  { id: "queue", label: "Queue", type: "multiSelect", tier: "quick", options: toOptions(QUEUES), searchPlaceholder: "Queues", description: "Which team's queue the batch is in" },
-  { id: "status", label: "Status", type: "multiSelect", tier: "quick", options: toOptions(STATUSES), description: "Where the batch is in processing" },
-  { id: "workflow", label: "Workflow", type: "singleSelect", tier: "more", options: toOptions(WORKFLOWS), searchPlaceholder: "Workflows" },
-  { id: "assignee", label: "Assignee", type: "multiSelect", tier: "more", options: toOptions(ASSIGNEES), searchPlaceholder: "Assignees" },
-  { id: "source", label: "Source", type: "multiSelect", tier: "more", options: toOptions(SOURCES) },
-  { id: "batchId", label: "Batch ID", type: "text", tier: "more", searchPlaceholder: "Contains, e.g. 1004" },
-];
 
 const STATUS_DOT: Record<string, string> = {
   Initial: "bg-border",
@@ -108,14 +86,21 @@ interface ColumnMeta {
   numeric?: boolean;
 }
 
-export function DemoTable() {
+export interface DemoTableProps {
+  /** Keep filters in the URL (the /demo page). Off for the landing page's embedded demo. */
+  syncUrl?: boolean;
+  className?: string;
+}
+
+export function DemoTable({ syncUrl = true, className }: DemoTableProps) {
   const [data] = useState(() => generateDemoRows());
-  const [applyMode, setApplyMode] = useState<ApplyMode>("manual");
   const [search, setSearch] = useState("");
   const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
+  // Apply mode and tooltips come from the site's Settings: in an app they're set once, in code.
+  const { applyMode, tooltips } = useSiteSettings();
 
   const url = useFilterUrlState(definitions);
-  const filters = useFilters({ definitions, applyMode, ...url });
+  const filters = useFilters({ definitions, applyMode, ...(syncUrl ? url : {}) });
   // The toolbar updates straight away; the 2,000-row table follows a moment later and can be
   // interrupted by the next click. Keeps instant apply responsive while ticking quickly.
   const deferredApplied = useDeferredValue(filters.applied);
@@ -164,7 +149,7 @@ export function DemoTable() {
   const paddingBottom = virtualizer.getTotalSize() - (virtualRows.at(-1)?.end ?? 0);
 
   return (
-    <div className="flex h-dvh flex-col">
+    <div className={cn("flex flex-col", className)}>
       <header className="border-b px-4 py-3">
         <FilterBar
           filters={filters}
@@ -173,7 +158,7 @@ export function DemoTable() {
           sort={sort}
           onSortChange={onSortChange}
           resultCount={{ shown: rows.length, total: data.length }}
-          actions={<ApplyModeToggle value={applyMode} onChange={setApplyMode} />}
+          tooltips={tooltips}
         />
       </header>
 
@@ -281,24 +266,3 @@ const DataRow = memo(function DataRow({
     </tr>
   );
 });
-
-function ApplyModeToggle({ value, onChange }: { value: ApplyMode; onChange: (mode: ApplyMode) => void }) {
-  return (
-    <div role="group" aria-label="Apply filters" className="inline-flex rounded-md border p-0.5 text-xs">
-      {(["manual", "instant"] as const).map((mode) => (
-        <button
-          key={mode}
-          type="button"
-          aria-pressed={value === mode}
-          onClick={() => onChange(mode)}
-          className={cn(
-            "rounded-sm px-2 py-0.5 text-muted-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-            value === mode && "bg-secondary text-secondary-foreground",
-          )}
-        >
-          {mode === "manual" ? "Manual apply" : "Instant apply"}
-        </button>
-      ))}
-    </div>
-  );
-}

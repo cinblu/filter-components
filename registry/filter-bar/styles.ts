@@ -8,9 +8,17 @@ export const POPOVER_OFFSET = 8;
 export const chipBase =
   "inline-flex h-(--fb-chip-h) max-w-(--fb-chip-max-width) min-w-(--fb-chip-min-width) shrink-0 items-center rounded-(--fb-chip-radius) border text-(length:--fb-chip-font-size) whitespace-nowrap";
 
-/** Unset: dashed outline, muted text. */
+/**
+ * Inside the filter bar, shadcn's --primary becomes the bar's own accent (--fb-accent,
+ * which defaults to --primary). Buttons, checkmarks and the calendar pick it up with no
+ * further changes. Applied to chips and to every popover and dialog the bar opens.
+ */
+export const accentScope =
+  "[--primary:var(--fb-accent)] [--primary-foreground:var(--fb-accent-foreground)]";
+
+/** Unset: dashed (or solid, or no) outline, muted text. */
 export const chipUnset =
-  "border-border text-muted-foreground [border-style:var(--fb-chip-border-style)] hover:bg-muted hover:text-foreground";
+  "border-(--fb-chip-unset-border-color) text-muted-foreground [border-style:var(--fb-chip-border-style)] hover:bg-muted hover:text-foreground";
 
 /** Set: solid outline on the background, with the value in the primary colour. */
 export const chipSet = "border-border bg-background text-foreground hover:bg-muted/60";

@@ -16,7 +16,8 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `pnpm exec next dev --port ${PORT}`,
+    // The landing and docs pages link to the built registry JSON, so build it first.
+    command: `pnpm registry:build && pnpm exec next dev --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

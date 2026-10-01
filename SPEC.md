@@ -233,9 +233,13 @@ All sizes inside the component should derive from these variables so the customi
   client-side filtering. For server-side, use `onChange` directly.
 
 ## 12. Docs site
-- `/` — a short pitch (the four problems → fixes), a live demo, and the install command.
+- `/` — a short pitch with a live toolbar, then the four problems → fixes, a live demo, and
+  the install command.
 - `/demo` — a full-page table with ~2,000 synthetic rows, horizontal scroll, sorting, every
-  filter type, both tiers, and a toggle between manual and instant apply.
+  filter type and both tiers.
+- Site header: nav plus a **Settings** popover (theme — light by default — accent, tooltips,
+  apply mode). These are developer-level options (a theme, `--fb-accent`, the `tooltips`
+  prop, `applyMode`), so they live outside the filter bar and apply to every demo.
 - `/customise` — controls for density, chip radius, unset-chip style (dashed / ghost /
   outline), accent colour and light/dark, with a live preview. A "Copy CSS" button outputs the
   variable overrides.
@@ -336,6 +340,21 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
     support it later through a custom tooltip render prop.
 32. The divider under the "selected when opened" group is a line drawn on the first row
     below it, not a separator element, because a listbox may only contain options (axe).
+33. The bar has its own accent, `--fb-accent` (default: your `--primary`). Inside chips,
+    popovers and dialogs, `--primary` is mapped to it, so shadcn buttons, checkmarks and the
+    calendar follow without code changes. Rationale: brand the filter bar without restyling
+    the app.
+34. Unset chip style is two variables: `--fb-chip-border-style` (dashed/solid) and
+    `--fb-chip-unset-border-color` (transparent for "ghost").
+35. `FilterBar` takes `tooltips` (default true). Apply mode, tooltips, theme and accent are
+    configuration, so the site shows them in a Settings popover, not in the toolbar.
+36. The docs site's own primary is shadcn's neutral, so the component's accent stands out;
+    the demo accent defaults to the design's green. Theme defaults to light (not the system
+    setting) and is remembered per browser.
+37. The landing page shows a live toolbar under the headline, before the four problems, so
+    a visitor sees the component within seconds. The full table demo follows the problems.
+38. Install commands use the site's own address (`{origin}/r/filter-bar.json`), so they're
+    right wherever the site is deployed.
 
 ## Awkward to implement — suggested changes
 Found while building and polishing. Each has a suggestion; none are blocking.
