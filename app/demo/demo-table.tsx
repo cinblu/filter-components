@@ -19,7 +19,7 @@ import { memo, useDeferredValue, useMemo, useRef, useState } from "react";
 import { useSiteSettings } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
 import { type DemoRow, generateDemoRows } from "@/lib/demo-data";
-import { demoFilterDefinitions as definitions, slug } from "@/lib/demo-filters";
+import { compactDemoFilterDefinitions, demoFilterDefinitions, slug } from "@/lib/demo-filters";
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/registry/filter-bar/filter-bar";
 import type { SortState } from "@/registry/filter-bar/types";
@@ -89,10 +89,16 @@ interface ColumnMeta {
 export interface DemoTableProps {
   /** Keep filters in the URL (the /demo page). Off for the landing page's embedded demo. */
   syncUrl?: boolean;
+  /**
+   * "compact" for previews: two quick filters, no search, so the toolbar stays on one line in
+   * a narrower frame. "full" for the /demo page.
+   */
+  variant?: "full" | "compact";
   className?: string;
 }
 
-export function DemoTable({ syncUrl = true, className }: DemoTableProps) {
+export function DemoTable({ syncUrl = true, variant = "full", className }: DemoTableProps) {
+  const definitions = variant === "compact" ? compactDemoFilterDefinitions : demoFilterDefinitions;
   const [data] = useState(() => generateDemoRows());
   const [search, setSearch] = useState("");
   const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
@@ -105,7 +111,10 @@ export function DemoTable({ syncUrl = true, className }: DemoTableProps) {
   // interrupted by the next click. Keeps instant apply responsive while ticking quickly.
   const deferredApplied = useDeferredValue(filters.applied);
   const deferredSearch = useDeferredValue(search);
-  const columnFilters = useMemo(() => toColumnFilters(deferredApplied, definitions), [deferredApplied]);
+  const columnFilters = useMemo(
+    () => toColumnFilters(deferredApplied, definitions),
+    [deferredApplied, definitions],
+  );
 
   // TanStack Table returns functions React Compiler can't memoize; this app doesn't use the
   // compiler, so the warning is only informational.
@@ -150,17 +159,19 @@ export function DemoTable({ syncUrl = true, className }: DemoTableProps) {
 
   return (
     <div className={cn("flex flex-col", className)}>
-      <header className="border-b px-4 py-3">
+      <div className="border-b px-4 py-3">
         <FilterBar
           filters={filters}
-          title={<h1 className="text-base font-semibold">Document queue</h1>}
-          search={{ value: search, onChange: setSearch, placeholder: "Search batches" }}
+          search={
+            variant === "full"
+              ? { value: search, onChange: setSearch, placeholder: "Search batches" }
+              : undefined
+          }
           sort={sort}
           onSortChange={onSortChange}
-          resultCount={{ shown: rows.length, total: data.length }}
           tooltips={tooltips}
         />
-      </header>
+      </div>
 
       <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
         <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
@@ -231,6 +242,14 @@ export function DemoTable({ syncUrl = true, className }: DemoTableProps) {
           </div>
         )}
       </div>
+      <p
+        aria-live="polite"
+        className="border-t px-4 py-2 text-xs text-muted-foreground tabular-nums"
+      >
+        {rows.length === data.length
+          ? `${data.length.toLocaleString()} batches`
+          : `${rows.length.toLocaleString()} of ${data.length.toLocaleString()} batches`}
+      </p>
     </div>
   );
 }

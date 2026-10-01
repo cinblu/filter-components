@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 
-import { demoFilterDefinitions } from "@/lib/demo-filters";
+import { compactDemoFilterDefinitions } from "@/lib/demo-filters";
 import { useSiteSettings } from "@/lib/site-settings";
 import { FilterBar } from "@/registry/filter-bar/filter-bar";
 import type { SortState } from "@/registry/filter-bar/types";
 import { useFilters } from "@/registry/filter-bar/use-filters";
 
-/** A live toolbar with a few filters set, for the landing page and the customiser. */
 const PREVIEW_SORT: SortState = {
   columnId: "createdAt",
   label: "Created Date",
@@ -16,29 +15,18 @@ const PREVIEW_SORT: SortState = {
   directionLabels: { asc: "Oldest first", desc: "Newest first" },
 };
 
+/**
+ * A live toolbar on its own, with one filter and a sort set: enough to show both chip states
+ * on a single line, without a table.
+ */
 export function ToolbarPreview() {
   const settings = useSiteSettings();
   const filters = useFilters({
-    definitions: demoFilterDefinitions,
+    definitions: compactDemoFilterDefinitions,
     applyMode: settings.applyMode,
-    defaultValue: {
-      createdAt: { kind: "preset", preset: "last7d" },
-      status: ["committed", "failed"],
-      workflow: "escalation",
-    },
+    defaultValue: { status: ["committed", "failed"] },
   });
   const [sort, setSort] = useState<SortState | undefined>(PREVIEW_SORT);
-  const [search, setSearch] = useState("");
 
-  return (
-    <FilterBar
-      filters={filters}
-      title={<span className="text-sm font-semibold">Document queue</span>}
-      search={{ value: search, onChange: setSearch, placeholder: "Search batches" }}
-      sort={sort}
-      onSortChange={setSort}
-      resultCount={{ shown: 128, total: 2000 }}
-      tooltips={settings.tooltips}
-    />
-  );
+  return <FilterBar filters={filters} sort={sort} onSortChange={setSort} tooltips={settings.tooltips} />;
 }

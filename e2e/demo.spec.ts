@@ -4,14 +4,15 @@ test.use({ viewport: { width: 1100, height: 760 } });
 
 test("filters sync to the URL and survive a reload", async ({ page }) => {
   await page.goto("/demo");
-  const count = page.getByText(/^Showing [\d,]+ of 2,000$/);
-  await expect(count).toHaveText("Showing 2,000 of 2,000");
+  // The count is a status line under the table: "2,000 batches" or "116 of 2,000 batches".
+  const count = page.getByText(/^([\d,]+ of )?2,000 batches$/);
+  await expect(count).toHaveText("2,000 batches");
 
   // Apply a preset and a multi-select filter.
   await page.getByRole("button", { name: "Add Created Date filter" }).click();
   await page.getByRole("option", { name: "1 month ago" }).click();
   // The table updates a moment after the toolbar (it's deferred), so wait for each new count.
-  await expect(count).not.toHaveText("Showing 2,000 of 2,000");
+  await expect(count).not.toHaveText("2,000 batches");
   const afterDate = await count.textContent();
 
   await page.getByRole("button", { name: "Add Status filter" }).click();
@@ -31,7 +32,7 @@ test("filters sync to the URL and survive a reload", async ({ page }) => {
   // Clear all empties the URL's filter params.
   await page.getByRole("button", { name: "Clear all" }).click();
   await expect(page).toHaveURL(/\/demo$/);
-  await expect(count).toHaveText("Showing 2,000 of 2,000");
+  await expect(count).toHaveText("2,000 batches");
 });
 
 test("column sorting is shown as a chip that stays visible when the table scrolls sideways", async ({ page }) => {

@@ -3,7 +3,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { CodeBlock } from "@/components/site/code-block";
-import { CopyCommand } from "@/components/site/copy-command";
+import { InstallTabs } from "@/components/site/install-tabs";
+import { PageShell } from "@/components/site/page-shell";
 
 export const metadata: Metadata = {
   title: "Docs",
@@ -110,22 +111,9 @@ const CSS_VARIABLES = `
 
 export default function DocsPage() {
   return (
-    <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[12rem_1fr]">
-      <nav aria-label="On this page" className="hidden lg:block">
-        <ul className="sticky top-24 flex flex-col gap-2 text-sm">
-          {SECTIONS.map((section) => (
-            <li key={section.id}>
-              <a href={`#${section.id}`} className="text-muted-foreground hover:text-foreground">
-                {section.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <main className="flex min-w-0 max-w-3xl flex-col gap-14">
+    <PageShell sections={SECTIONS}>
         <header className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Docs</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Docs</h1>
           <p className="text-sm text-muted-foreground">
             The Filter Bar is source you own: the CLI copies it into{" "}
             <code className="font-mono text-xs">components/filter-bar/</code>, and you can edit
@@ -135,14 +123,14 @@ export default function DocsPage() {
 
         <Section id="install" title="Install">
           <p>In a project set up with shadcn/ui and Tailwind CSS v4:</p>
-          <CopyCommand command="npx shadcn@latest add {origin}/r/filter-bar.json" />
+          <InstallTabs />
           <p>
             This adds the files, the shadcn components they use (button, calendar, command,
             dialog, input, popover, separator, tooltip), <code>date-fns</code>,{" "}
             <code>lucide-react</code>, and the <a href="#theming">CSS variables</a>. For
             client-side filtering with TanStack Table, add the adapter as well:
           </p>
-          <CopyCommand command="npx shadcn@latest add {origin}/r/filter-bar-tanstack.json" />
+          <InstallTabs item="filter-bar-tanstack" />
           <p>Chip tooltips need shadcn&apos;s <code>TooltipProvider</code> somewhere above the bar, usually in your root layout.</p>
         </Section>
 
@@ -151,7 +139,7 @@ export default function DocsPage() {
             Describe your filters, hand them to <code>useFilters</code>, render{" "}
             <code>FilterBar</code>. The bar shows the chips; you decide what filtering means.
           </p>
-          <CodeBlock>{QUICK_START}</CodeBlock>
+          <CodeBlock title="documents.tsx">{QUICK_START}</CodeBlock>
         </Section>
 
         <Section id="filter-bar" title="FilterBar">
@@ -259,7 +247,7 @@ export default function DocsPage() {
             component). Every size scales with <code>--fb-density</code>. The{" "}
             <Link href="/customise">customiser</Link> writes overrides for you.
           </p>
-          <CodeBlock>{CSS_VARIABLES}</CodeBlock>
+          <CodeBlock title="globals.css">{CSS_VARIABLES}</CodeBlock>
           <p>
             <code>--fb-accent</code> colours chip values, Apply buttons, checkmarks and focus
             borders, so the bar can carry a brand colour without changing your app&apos;s{" "}
@@ -322,8 +310,7 @@ export default function DocsPage() {
             Long values end in an ellipsis at 400px; the tooltip has the rest.
           </Detail>
         </Section>
-      </main>
-    </div>
+    </PageShell>
   );
 }
 
@@ -344,9 +331,9 @@ function Section({ id, title, children }: { id: string; title: string; children:
 
 function PropsTable({ rows, head = ["Prop", "Type", ""] }: { rows: string[][]; head?: string[] }) {
   return (
-    <div className="overflow-x-auto rounded-lg border">
+    <div className="overflow-x-auto rounded-xl border">
       <table className="w-full text-left text-xs">
-        <thead className="bg-muted/40 text-muted-foreground">
+        <thead className="bg-(--surface-raised) text-muted-foreground">
           <tr>
             {head.map((cell, index) => (
               <th key={index} scope="col" className="px-3 py-2 font-medium">

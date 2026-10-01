@@ -79,8 +79,9 @@ Layout, two areas on one row:
 - `[T]` More-tier filters render as chips **only while applied**. When cleared, they go
   back into the More Filters menu.
 - `[T]` "Clear all" appears only when at least one filter is applied. It clears filters, not
-  the search text and not the sort. While hidden it keeps its space, so it always appears
-  in the same spot and the count and actions never shift.
+  the search text and not the sort. When a result count or actions sit beside it, it keeps
+  its space while hidden, so it always appears in the same spot and they never shift. With
+  nothing beside it, it simply appears.
 - The global search input is optional (`search` prop). It applies on typing with a 300 ms
   debounce. It does not use Apply.
 - An optional `resultCount` prop renders "Showing 42 of 1,200" in an `aria-live="polite"`
@@ -233,13 +234,18 @@ All sizes inside the component should derive from these variables so the customi
   client-side filtering. For server-side, use `onChange` directly.
 
 ## 12. Docs site
-- `/` — a short pitch with a live toolbar, then the four problems → fixes, a live demo, and
-  the install command.
+- `/` — a component page: title and subtext, a Preview/Code frame with the install command,
+  then **The details** (one live interaction per card, with its "why"), **Make it yours**
+  (a property bar over a live toolbar), Installation (npm/pnpm/bun/yarn), Usage and API. An
+  "On this page" rail on the right follows the section being read.
 - `/demo` — a full-page table with ~2,000 synthetic rows, horizontal scroll, sorting, every
-  filter type and both tiers.
-- Site header: nav plus a **Settings** popover (theme — light by default — accent, tooltips,
-  apply mode). These are developer-level options (a theme, `--fb-accent`, the `tooltips`
-  prop, `applyMode`), so they live outside the filter bar and apply to every demo.
+  filter type and both tiers. The result count is a status line under the table.
+- `/customise` — a canvas: the component in a window, a floating toolbar of properties, and
+  a CSS panel with Copy CSS.
+- `/docs` — the same page layout and rail.
+- Top bar: brand, Demo / Customise / Docs, GitHub, theme (light by default). Demo options
+  (apply mode, tooltips, accent) sit in an **Options** popover on the preview frame and on
+  `/demo`: developer-level settings, kept outside the filter bar.
 - `/customise` — controls for density, chip radius, unset-chip style (dashed / ghost /
   outline), accent colour and light/dark, with a live preview. A "Copy CSS" button outputs the
   variable overrides.
@@ -355,6 +361,16 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
     a visitor sees the component within seconds. The full table demo follows the problems.
 38. Install commands use the site's own address (`{origin}/r/filter-bar.json`), so they're
     right wherever the site is deployed.
+39. The result count describes the results, not the filters, so the demos show it under the
+    table and previews leave it out. `FilterBar` keeps `resultCount` for apps that want it in
+    the bar: its polite announcement is how screen-reader users hear that a filter worked.
+40. Previews have no title and use a compact set (Created Date and Status up front, the rest
+    in More Filters) so the toolbar stays on one line in a card.
+41. The site redesign (component-page layout, "On this page" rail, layered surfaces, detail
+    cards, canvas customiser) follows Nahid's references (Vengeance UI, Aceternity, shadcn).
+    Customiser choices are shared site-wide, so the whole site previews them.
+42. Light-theme `--muted-foreground` is slightly darker than shadcn's default so secondary
+    text keeps 4.5:1 on the raised surfaces too (axe).
 
 ## Awkward to implement — suggested changes
 Found while building and polishing. Each has a suggestion; none are blocking.

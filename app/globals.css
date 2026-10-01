@@ -60,7 +60,9 @@
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
+    /* A touch darker than shadcn's default, so secondary text keeps 4.5:1 on the raised
+       surfaces (--surface-raised) as well as on the page. */
+    --muted-foreground: oklch(0.5 0 0);
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
@@ -155,4 +157,22 @@
 .dark {
   --fb-accent: oklch(0.75 0.13 165);
   --fb-accent-foreground: oklch(0.2 0.03 165);
+}
+
+/* Docs site surfaces (not part of the component). Layered: the page, raised frames and
+   panels on it, and inset stages inside them where the component is shown. */
+:root {
+  --surface-raised: oklch(0.97 0 0);
+  --surface-stage: oklch(1 0 0);
+  --surface-grid: oklch(0.88 0 0);
+}
+.dark {
+  --surface-raised: oklch(0.195 0 0);
+  --surface-stage: oklch(0.145 0 0);
+  --surface-grid: oklch(0.3 0 0);
+}
+
+@utility dot-grid {
+  background-image: radial-gradient(var(--surface-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
 }

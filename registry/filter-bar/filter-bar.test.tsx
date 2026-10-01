@@ -132,6 +132,16 @@ describe("FilterBar layout (SPEC §4)", () => {
     expect(screen.queryByRole("button", { name: "Clear all" })).not.toBeInTheDocument();
   });
 
+  it("reserves no hidden Clear all when there's no count or actions beside it", () => {
+    function Bare() {
+      const filters = useFilters({ definitions });
+      return <FilterBar filters={filters} />;
+    }
+    const { container } = render(<Bare />);
+    expect(container.querySelector("button.invisible")).toBeNull();
+    expect(screen.queryByText("Clear all")).not.toBeInTheDocument();
+  });
+
   it("announces the result count politely", () => {
     render(<Harness />);
     expect(screen.getByText("Showing 42 of 1,200")).toHaveAttribute("aria-live", "polite");

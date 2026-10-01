@@ -19,7 +19,7 @@ test.describe("settings", () => {
 
   test("accent changes --fb-accent everywhere, and persists", async ({ page }) => {
     await page.goto("/demo?status=committed");
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByRole("button", { name: "Options" }).click();
     await page.getByRole("radio", { name: "Violet" }).click();
     const accentOf = () =>
       page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--fb-accent"));
@@ -34,7 +34,7 @@ test.describe("settings", () => {
     await chip.hover();
     await expect(page.getByRole("tooltip")).toContainText("Committed, Failed");
 
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByRole("button", { name: "Options" }).click();
     await page.getByRole("radiogroup", { name: "Tooltips" }).getByRole("radio", { name: "Off" }).click();
     await page.keyboard.press("Escape");
     await page.mouse.move(0, 400);
@@ -45,7 +45,7 @@ test.describe("settings", () => {
 
   test("apply mode: instant applies on each tick, without an Apply button", async ({ page }) => {
     await page.goto("/demo");
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByRole("button", { name: "Options" }).click();
     await page.getByRole("radiogroup", { name: "Apply mode" }).getByRole("radio", { name: "Instant" }).click();
     await page.keyboard.press("Escape");
 
@@ -62,11 +62,18 @@ test.describe("customiser", () => {
 
   test("Copy CSS gives valid CSS that sets every chosen variable", async ({ page }) => {
     await page.goto("/customise");
-    await page.getByRole("radio", { name: "Compact" }).click();
-    await page.getByRole("radio", { name: "Pill" }).click();
-    await page.getByRole("radio", { name: "Ghost" }).click();
-    await page.getByRole("radio", { name: "Blue" }).click();
-    await page.getByRole("button", { name: "Copy CSS" }).click();
+    const toolbar = page.getByRole("toolbar", { name: "Customise" });
+    // Each toolbar item opens its control above the toolbar.
+    const choose = async (item: RegExp, option: string) => {
+      await toolbar.getByRole("button", { name: item }).click();
+      await page.getByRole("radio", { name: option }).click();
+      await page.keyboard.press("Escape");
+    };
+    await choose(/^Density/, "Compact");
+    await choose(/^Radius/, "Pill");
+    await choose(/^Unset chip/, "Ghost");
+    await choose(/^Accent/, "Blue");
+    await page.getByRole("complementary", { name: "CSS" }).getByRole("button", { name: "Copy CSS" }).click();
 
     const copied = await page.evaluate(() => navigator.clipboard.readText());
     expect(copied).toBe(await page.getByTestId("customiser-css").textContent());
@@ -109,39 +116,82 @@ test.describe("customiser", () => {
     await page.goto("/customise");
     const chip = page.locator("[data-slot=filter-chip]").first();
     const heightBefore = (await chip.boundingBox())!.height;
+    await page.getByRole("toolbar", { name: "Customise" }).getByRole("button", { name: /^Density/ }).click();
     await page.getByRole("radio", { name: "Comfortable" }).click();
     await expect.poll(async () => (await chip.boundingBox())!.height).toBeGreaterThan(heightBefore);
   });
 });
 
-test.describe("landing page", () => {
-  test("leads with the four problems, then the demo, then install", async ({ page }) => {
+test.describe("main page", () => {
+  test("reads like a component page: overview, details, customise, install, usage, API", async ({ page }) => {
     await page.goto("/");
-    const headings = await page.getByRole("heading", { level: 2 }).allTextContents();
-    expect(headings).toEqual([
-      "Four ways filtering goes wrong, and the fix for each",
-      "Try it",
-      "Install",
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Filter Bar");
+    expect(await page.getByRole("heading", { level: 2 }).allTextContents()).toEqual([
+      "The details",
+      "Make it yours",
+      "Installation",
+      "Usage",
+      "API",
     ]);
-    await expect(page.getByRole("listitem").filter({ hasText: "Filter (2)" })).toBeVisible();
+    const rail = page.getByRole("navigation", { name: "On this page" });
+    await expect(rail.getByRole("link")).toHaveText([
+      "Overview",
+      "The details",
+      "Make it yours",
+      "Installation",
+      "Usage",
+      "API",
+    ]);
   });
 
-  test("the install command points at this site's registry, which serves the item", async ({ page, baseURL }) => {
+  test("loads at the top: inline editors don't scroll the page", async ({ page }) => {
     await page.goto("/");
-    const command = page.getByText(/npx shadcn@latest add .*\/r\/filter-bar\.json/);
-    await expect(command).toContainText(`${baseURL}/r/filter-bar.json`);
-    const response = await page.request.get(`${baseURL}/r/filter-bar.json`);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  });
+
+  test("the rail follows the section being read", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("#installation").scrollIntoViewIfNeeded();
+    await page.evaluate(() => document.getElementById("installation")!.scrollIntoView());
+    await expect(
+      page.getByRole("navigation", { name: "On this page" }).getByRole("link", { name: "Installation" }),
+    ).toHaveAttribute("aria-current", "location");
+  });
+
+  test("install commands point at this site's registry, which serves the item", async ({ page, baseURL }) => {
+    await page.goto("/");
+    const url = `${baseURL}/r/filter-bar.json`;
+    await expect(page.locator("#installation pre").first()).toHaveText(`npx shadcn@latest add ${url}`);
+    await page.locator("#installation").getByRole("tab", { name: "pnpm" }).first().click();
+    await expect(page.locator("#installation pre").first()).toHaveText(`pnpm dlx shadcn@latest add ${url}`);
+    const response = await page.request.get(url);
     expect(response.ok()).toBe(true);
     expect((await response.json()).name).toBe("filter-bar");
   });
 
-  test("the embedded demo doesn't write filters into the landing page's URL", async ({ page }) => {
+  test("the preview doesn't write filters into the page URL, and shows no count in the bar", async ({ page }) => {
     await page.goto("/");
-    const demo = page.locator("#demo").locator("xpath=../..");
-    await demo.getByRole("button", { name: "Add Status filter" }).click();
-    await page.getByRole("option", { name: "Failed" }).click();
-    await page.getByRole("button", { name: "Apply", exact: true }).click();
-    await expect(demo.getByRole("button", { name: "Status filter: Failed. Edit" })).toBeVisible();
+    const preview = page.locator("#preview-panel-preview");
+    await preview.getByRole("button", { name: "Add Created Date filter" }).click();
+    await page.getByRole("dialog", { name: "Created Date filter" }).getByRole("option", { name: "1 week ago" }).click();
+    await expect(preview.getByRole("button", { name: "Created Date filter: 1 week ago. Edit" })).toBeVisible();
     expect(new URL(page.url()).search).toBe("");
+    await expect(preview.getByRole("group", { name: "Filters" })).not.toContainText(/batches|Showing/);
+  });
+
+  test("detail cards are live: + becomes × on a real chip", async ({ page }) => {
+    await page.goto("/");
+    // The cards are server-rendered; wait for hydration before clicking.
+    await page.waitForLoadState("networkidle");
+    // The first card: one Status chip on its own.
+    const details = page.locator("#details > div > div").first();
+    await details.getByRole("button", { name: "Add Status filter" }).click();
+    await page.getByRole("dialog", { name: "Status filter" }).getByRole("option", { name: "Failed" }).click();
+    const remove = details.getByRole("button", { name: "Remove Status filter" });
+    await expect(remove.locator("svg")).toHaveClass(/rotate-45/);
+    await remove.click();
+    await expect(details.getByRole("button", { name: "Add Status filter" })).toBeVisible();
   });
 });

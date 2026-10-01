@@ -1,150 +1,163 @@
-import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/site/code-block";
-import { CopyCommand } from "@/components/site/copy-command";
-import { ToolbarPreview } from "@/components/site/toolbar-preview";
+import { ComponentPreview } from "@/components/site/component-preview";
+import { CustomiseTeaser } from "@/components/site/customise-teaser";
+import { Details } from "@/components/site/details";
+import { InstallTabs } from "@/components/site/install-tabs";
+import { PageShell, Section } from "@/components/site/page-shell";
 
 import { DemoClient } from "./demo/demo-client";
 
-// SPEC §1: the four ways filtering fails in data-heavy apps, and what this component does.
-const PROBLEMS = [
-  {
-    problem: "People forget which filters are on, because they hide behind a “Filter (2)” button.",
-    fix: "Every applied filter is a chip in the toolbar, showing its value.",
-  },
-  {
-    problem: "Sorting disappears once the table scrolls sideways and the header is out of view.",
-    fix: "The active sort is a chip too, so it stays visible.",
-  },
-  {
-    problem: "Every filter gets equal weight, so the important ones get lost in a long list.",
-    fix: "Two tiers: a few quick filters always visible; the rest in a searchable menu.",
-  },
-  {
-    problem: "Filter controls take space away from the data they're filtering.",
-    fix: "Title, search and filters share one toolbar row.",
-  },
+const SECTIONS = [
+  { id: "overview", label: "Overview" },
+  { id: "details", label: "The details" },
+  { id: "customise", label: "Make it yours" },
+  { id: "installation", label: "Installation" },
+  { id: "usage", label: "Usage" },
+  { id: "api", label: "API" },
 ];
 
 const USAGE = `
-const filters = useFilters({ definitions });
+"use client";
 
-<FilterBar
-  filters={filters}
-  title={<h1>Documents</h1>}
-  sort={sort}
-  onSortChange={setSort}
-/>
+import { useState } from "react";
+
+import { FilterBar } from "@/components/filter-bar/filter-bar";
+import type { FilterDefinition, SortState } from "@/components/filter-bar/types";
+import { useFilters } from "@/components/filter-bar/use-filters";
+
+const definitions: FilterDefinition[] = [
+  { id: "createdAt", label: "Created Date", type: "dateRange", tier: "quick" },
+  {
+    id: "status",
+    label: "Status",
+    type: "multiSelect",
+    tier: "quick",
+    options: [
+      { value: "open", label: "Open" },
+      { value: "closed", label: "Closed" },
+    ],
+  },
+  { id: "batchId", label: "Batch ID", type: "text", tier: "more" },
+];
+
+export function Documents() {
+  const filters = useFilters({ definitions });
+  const [sort, setSort] = useState<SortState>();
+
+  // filters.applied is what to filter by: send it to your API,
+  // or hand it to TanStack Table with the adapter.
+  return <FilterBar filters={filters} sort={sort} onSortChange={setSort} />;
+}
 `;
+
+const PROPS: [string, string, string][] = [
+  ["filters", "UseFiltersResult", "From useFilters({ definitions })."],
+  ["sort, onSortChange", "SortState", "Shows the sort as a chip."],
+  ["search", "{ value, onChange }", "Optional search, applied as you type."],
+  ["title, actions", "ReactNode", "Slots at either end of the bar."],
+  ["resultCount", "{ shown, total }", "Announces the result count to screen readers."],
+  ["tooltips", "boolean", "Hover tooltips on chips. Default true."],
+];
 
 export default function Home() {
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-20 px-4 py-16 sm:px-6 sm:py-20">
-      <section className="flex max-w-2xl flex-col gap-5">
-        <p className="text-sm text-muted-foreground">A shadcn registry component</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          A filter toolbar that keeps the data first
-        </h1>
-        <p className="text-base text-pretty text-muted-foreground">
-          Applied filters stay visible, the important ones stay one click away, and the whole
-          thing fits on one row above your table. Install the source into your project and
-          make it yours.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild>
-            <Link href="/demo">
-              Try the full demo
-              <ArrowRightIcon aria-hidden />
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <a href="#install">Install</a>
-          </Button>
-        </div>
-      </section>
-
-      {/* The component itself, live, before anything else is explained. */}
-      <div className="-mt-8 rounded-xl border p-4 sm:p-5">
-        <ToolbarPreview />
-      </div>
-
-      <section aria-labelledby="why" className="flex flex-col gap-6">
-        <h2 id="why" className="text-lg font-semibold tracking-tight">
-          Four ways filtering goes wrong, and the fix for each
-        </h2>
-        <ol className="grid gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-2">
-          {PROBLEMS.map(({ problem, fix }, index) => (
-            <li key={problem} className="flex flex-col gap-3 bg-background p-5">
-              <span className="text-xs text-muted-foreground tabular-nums">0{index + 1}</span>
-              <p className="text-sm text-muted-foreground">{problem}</p>
-              <p className="flex gap-2 text-sm font-medium">
-                <ArrowRightIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-(--fb-accent)" />
-                {fix}
-              </p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section aria-labelledby="demo" className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="demo" className="text-lg font-semibold tracking-tight">
-            Try it
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            2,000 synthetic rows. Theme, accent, tooltips and apply mode are in{" "}
-            <span className="font-medium text-foreground">Settings</span>, top right.
+    <PageShell sections={SECTIONS}>
+      <section id="overview" aria-labelledby="overview-title" className="flex scroll-mt-24 flex-col gap-6">
+        <div className="flex flex-col gap-3">
+          <h1 id="overview-title" className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            Filter Bar
+          </h1>
+          <p className="max-w-2xl text-base text-pretty text-muted-foreground">
+            A filter toolbar for data-heavy tables. Applied filters stay visible, the important ones
+            stay one click away, and the whole thing fits on one row, so the data keeps the screen.
           </p>
+          <ul aria-label="Built with" className="flex flex-wrap gap-1.5">
+            {["shadcn/ui registry", "React", "Tailwind v4", "Keyboard first", "WCAG AA"].map((tag) => (
+              <li key={tag} className="rounded-md border bg-(--surface-raised) px-2 py-0.5 text-xs text-muted-foreground">
+                {tag}
+              </li>
+            ))}
+          </ul>
         </div>
-        <div className="overflow-hidden rounded-xl border">
-          <DemoClient syncUrl={false} className="h-[32rem]" />
-        </div>
+        <ComponentPreview
+          code={USAGE}
+          preview={<DemoClient syncUrl={false} variant="compact" className="h-[26rem]" />}
+        />
       </section>
 
-      <section id="install" aria-labelledby="install-heading" className="flex scroll-mt-20 flex-col gap-4">
-        <h2 id="install-heading" className="text-lg font-semibold tracking-tight">
-          Install
-        </h2>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          The shadcn CLI copies the source into your project, with the shadcn components it
-          uses, date-fns, lucide-react and its CSS variables. In a project set up with shadcn:
-        </p>
-        <CopyCommand command="npx shadcn@latest add {origin}/r/filter-bar.json" />
-        <p className="text-sm text-muted-foreground">
-          Using TanStack Table? Add the adapter too:
-        </p>
-        <CopyCommand command="npx shadcn@latest add {origin}/r/filter-bar-tanstack.json" />
-        <CodeBlock className="mt-2">{USAGE}</CodeBlock>
-        <p className="text-sm text-muted-foreground">
-          Everything else is in the{" "}
-          <Link href="/docs" className="text-foreground underline underline-offset-4">
-            docs
-          </Link>
-          . To match your design, try the{" "}
-          <Link href="/customise" className="text-foreground underline underline-offset-4">
-            customiser
-          </Link>
-          .
-        </p>
-      </section>
+      <Section
+        id="details"
+        title="The details"
+        lead="Small interactions that keep filtering predictable. Each one is live; try it."
+      >
+        <Details />
+      </Section>
+
+      <Section
+        id="customise"
+        title="Make it yours"
+        lead="Every size and colour is a CSS variable. Change them here and the whole site follows."
+      >
+        <CustomiseTeaser />
+      </Section>
+
+      <Section
+        id="installation"
+        title="Installation"
+        lead="The shadcn CLI copies the source into your project, with the shadcn components, packages and CSS variables it needs."
+      >
+        <InstallTabs />
+        <p className="text-sm text-muted-foreground">Filtering in the browser with TanStack Table? Add the adapter too:</p>
+        <InstallTabs item="filter-bar-tanstack" />
+      </Section>
+
+      <Section id="usage" title="Usage" lead="Describe your filters, hand them to useFilters, render the bar.">
+        <CodeBlock title="documents.tsx">{USAGE}</CodeBlock>
+      </Section>
+
+      <Section
+        id="api"
+        title="API"
+        lead={
+          <>
+            The main props. Filter definitions, the hook, URL sync and the adapter are in the{" "}
+            <Link href="/docs" className="text-foreground underline underline-offset-4">
+              docs
+            </Link>
+            .
+          </>
+        }
+      >
+        <div className="overflow-x-auto rounded-xl border">
+          <table className="w-full text-left text-[13px]">
+            <thead className="bg-(--surface-raised) text-xs text-muted-foreground">
+              <tr>
+                <th scope="col" className="px-4 py-2.5 font-medium">Prop</th>
+                <th scope="col" className="px-4 py-2.5 font-medium">Type</th>
+                <th scope="col" className="px-4 py-2.5 font-medium">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PROPS.map(([name, type, description]) => (
+                <tr key={name} className="border-t align-top">
+                  <td className="px-4 py-2.5 font-mono text-xs whitespace-nowrap">{name}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">{type}</td>
+                  <td className="px-4 py-2.5 text-muted-foreground">{description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
 
       <footer className="flex flex-col gap-1 border-t pt-6 text-xs text-muted-foreground">
         <p>
           Based on Nahid&apos;s article “Crafting a modular filtering framework for data-heavy
-          applications”.
-        </p>
-        <p>
-          MIT licence ·{" "}
-          <a
-            href="https://github.com/cinblu/filter-components"
-            className="underline underline-offset-4 hover:text-foreground"
-          >
-            Source on GitHub
-          </a>
+          applications”. MIT licence.
         </p>
       </footer>
-    </main>
+    </PageShell>
   );
 }

@@ -1,208 +1,228 @@
 "use client";
 
-import { CheckIcon, CopyIcon, RotateCcwIcon } from "lucide-react";
-import { useState } from "react";
+// The customiser, laid out like a design tool: the component on a canvas, a floating toolbar
+// of properties at the bottom, and the CSS in a panel on the right. Every change applies to
+// the whole site, through exactly the CSS the panel shows.
 
-import { type Accent, DEFAULT_ACCENT, updateSiteSettings, useSiteSettings } from "@/lib/site-settings";
-import { Button } from "@/components/ui/button";
-import { AccentPicker } from "@/components/site/accent-picker";
-import { Segmented } from "@/components/site/segmented";
-import { ToolbarPreview } from "@/components/site/toolbar-preview";
+import {
+  CheckIcon,
+  CodeIcon,
+  CopyIcon,
+  MoonIcon,
+  PaletteIcon,
+  RotateCcwIcon,
+  SquareDashedIcon,
+  SquareIcon,
+  SunIcon,
+  XIcon,
+} from "lucide-react";
+import { type ReactNode, useState } from "react";
 
-type Density = "0.875" | "1" | "1.125";
-type Radius = "0" | "0.25rem" | "0.375rem" | "0.5rem" | "999px";
-type UnsetStyle = "dashed" | "outline" | "ghost";
+import { cn } from "@/lib/utils";
+import {
+  DEFAULT_SETTINGS,
+  overridesCss,
+  updateSiteSettings,
+  useSiteSettings,
+} from "@/lib/site-settings";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AccentControl, DensityControl, RadiusControl, UnsetStyleControl } from "@/components/site/controls";
 
-interface Choices {
-  density: Density;
-  radius: Radius;
-  unsetStyle: UnsetStyle;
-}
+import { DemoClient } from "../demo/demo-client";
 
-const DEFAULTS: Choices = { density: "1", radius: "0.375rem", unsetStyle: "dashed" };
-
-/**
- * The CSS for the current choices. The page applies exactly this, so what you see is what
- * you copy. Paste it after the Filter Bar block in your global CSS.
- */
-function buildCss(choices: Choices, accent: Accent): string {
-  const variables = [
-    `--fb-density: ${choices.density};`,
-    `--fb-chip-radius: ${choices.radius};`,
-    `--fb-chip-border-style: ${choices.unsetStyle === "dashed" ? "dashed" : "solid"};`,
-    `--fb-chip-unset-border-color: ${choices.unsetStyle === "ghost" ? "transparent" : "var(--border)"};`,
-    `--fb-accent: ${accent.light.accent};`,
-    `--fb-accent-foreground: ${accent.light.foreground};`,
-  ];
-  const dark = [
-    `--fb-accent: ${accent.dark.accent};`,
-    `--fb-accent-foreground: ${accent.dark.foreground};`,
-  ];
-  return [
-    "/* Filter Bar overrides */",
-    `:root {\n  ${variables.join("\n  ")}\n}`,
-    `.dark {\n  ${dark.join("\n  ")}\n}`,
-    "",
-  ].join("\n");
-}
+const DENSITY_LABEL = { "0.875": "Compact", "1": "Default", "1.125": "Comfortable" } as const;
+const RADIUS_LABEL = { "0": "0", "0.25rem": "4px", "0.375rem": "6px", "0.5rem": "8px", "999px": "Pill" } as const;
+const UNSET_LABEL = { dashed: "Dashed", outline: "Outline", ghost: "Ghost" } as const;
 
 export function Customiser() {
   const settings = useSiteSettings();
-  const [choices, setChoices] = useState<Choices>(DEFAULTS);
-  const [copied, setCopied] = useState(false);
-  const set = (patch: Partial<Choices>) => setChoices((prev) => ({ ...prev, ...patch }));
-
-  const css = buildCss(choices, settings.accent);
+  const [cssOpen, setCssOpen] = useState(true);
+  const css = overridesCss(settings);
 
   return (
-    <main className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[18rem_1fr]">
-      {/* Applies the choices live, to the preview and to every popover it opens. */}
-      <style>{css}</style>
+    <main className="dot-grid relative flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden bg-(--surface-raised)">
+      <h1 className="sr-only">Customise</h1>
 
-      <section aria-labelledby="customise-heading" className="flex flex-col gap-6">
-        <div className="flex flex-col gap-1.5">
-          <h1 id="customise-heading" className="text-xl font-semibold tracking-tight">
-            Customise
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Everything here is a CSS variable. Adjust, check the preview, then copy the CSS.
-          </p>
+      {/* The canvas: the component in a window, centred. */}
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 items-center justify-center p-4 pb-24 transition-[padding] duration-200 motion-reduce:transition-none sm:p-8 sm:pb-28",
+          cssOpen && "lg:pr-[25rem]",
+        )}
+      >
+        <div className="flex h-full max-h-[34rem] w-full max-w-4xl flex-col overflow-hidden rounded-xl border bg-(--surface-stage) shadow-xl">
+          <DemoClient syncUrl={false} variant="compact" className="min-h-0 flex-1" />
         </div>
+      </div>
 
-        <Control label="Density" variable="--fb-density">
-          <Segmented
-            label="Density"
-            value={choices.density}
-            options={[
-              { value: "0.875", label: "Compact" },
-              { value: "1", label: "Default" },
-              { value: "1.125", label: "Comfortable" },
-            ]}
-            onChange={(density) => set({ density })}
-          />
-        </Control>
+      {/* The CSS panel. */}
+      {cssOpen && (
+        <aside
+          aria-label="CSS"
+          className="absolute inset-x-4 top-4 bottom-24 z-20 flex flex-col overflow-hidden rounded-xl border bg-background shadow-xl max-lg:hidden lg:left-auto lg:w-96"
+        >
+          <CssPanel css={css} onClose={() => setCssOpen(false)} />
+        </aside>
+      )}
 
-        <Control label="Chip radius" variable="--fb-chip-radius">
-          <Segmented
-            label="Chip radius"
-            value={choices.radius}
-            options={[
-              { value: "0", label: "0" },
-              { value: "0.25rem", label: "4" },
-              { value: "0.375rem", label: "6" },
-              { value: "0.5rem", label: "8" },
-              { value: "999px", label: "Pill" },
-            ]}
-            onChange={(radius) => set({ radius })}
-          />
-        </Control>
-
-        <Control label="Unset chip style" variable="--fb-chip-border-style">
-          <Segmented
-            label="Unset chip style"
-            value={choices.unsetStyle}
-            options={[
-              { value: "dashed", label: "Dashed" },
-              { value: "outline", label: "Outline" },
-              { value: "ghost", label: "Ghost" },
-            ]}
-            onChange={(unsetStyle) => set({ unsetStyle })}
-          />
-        </Control>
-
-        <Control label="Accent" variable="--fb-accent">
-          <AccentPicker value={settings.accent} onChange={(accent) => updateSiteSettings({ accent })} />
-        </Control>
-
-        <Control label="Theme" variable=".dark">
-          <Segmented
-            label="Theme"
-            value={settings.theme}
-            options={[
-              { value: "light", label: "Light" },
-              { value: "dark", label: "Dark" },
-            ]}
-            onChange={(theme) => updateSiteSettings({ theme })}
-          />
-        </Control>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="self-start text-muted-foreground"
-          onClick={() => {
-            setChoices(DEFAULTS);
-            updateSiteSettings({ accent: DEFAULT_ACCENT });
-          }}
+      {/* The floating toolbar. */}
+      <div
+        role="toolbar"
+        aria-label="Customise"
+        className="absolute bottom-6 left-1/2 z-30 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-0.5 overflow-x-auto rounded-xl border bg-background/95 p-1 shadow-lg backdrop-blur-md"
+      >
+        <ToolButton icon={<span aria-hidden className="text-[11px] font-semibold">Aa</span>} label="Density" value={DENSITY_LABEL[settings.density]}>
+          <DensityControl />
+        </ToolButton>
+        <ToolButton icon={<SquareIcon aria-hidden className="rounded-[3px]" />} label="Radius" value={RADIUS_LABEL[settings.radius]}>
+          <RadiusControl />
+        </ToolButton>
+        <ToolButton icon={<SquareDashedIcon aria-hidden />} label="Unset chip" value={UNSET_LABEL[settings.unsetStyle]}>
+          <UnsetStyleControl />
+        </ToolButton>
+        <ToolButton
+          icon={<span aria-hidden className="size-3.5 rounded-full bg-(--fb-accent) ring-1 ring-foreground/10" />}
+          label="Accent"
+          value={settings.accent.label}
+        >
+          <AccentControl />
+        </ToolButton>
+        <Divider />
+        <IconButton
+          label={settings.theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+          onClick={() => updateSiteSettings({ theme: settings.theme === "dark" ? "light" : "dark" })}
+        >
+          {settings.theme === "dark" ? <SunIcon aria-hidden /> : <MoonIcon aria-hidden />}
+        </IconButton>
+        <IconButton
+          label="Reset to defaults"
+          onClick={() =>
+            updateSiteSettings({
+              density: DEFAULT_SETTINGS.density,
+              radius: DEFAULT_SETTINGS.radius,
+              unsetStyle: DEFAULT_SETTINGS.unsetStyle,
+              accent: DEFAULT_SETTINGS.accent,
+            })
+          }
         >
           <RotateCcwIcon aria-hidden />
-          Reset to defaults
-        </Button>
-      </section>
-
-      <div className="flex min-w-0 flex-col gap-8">
-        <section aria-labelledby="preview-heading" className="flex flex-col gap-3">
-          <h2 id="preview-heading" className="text-sm font-medium">
-            Preview
-          </h2>
-          <div className="rounded-xl border p-4 sm:p-6">
-            <ToolbarPreview />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Open a chip, the sort chip or More Filters: popovers and dialogs use the same
-            variables.
-          </p>
-        </section>
-
-        <section aria-labelledby="css-heading" className="flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="css-heading" className="text-sm font-medium">
-              CSS
-            </h2>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={async () => {
-                await navigator.clipboard.writeText(css);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
-              }}
-            >
-              {copied ? <CheckIcon aria-hidden /> : <CopyIcon aria-hidden />}
-              {copied ? "Copied" : "Copy CSS"}
-            </Button>
-          </div>
-          <pre
-            data-testid="customiser-css"
-            className="overflow-x-auto rounded-lg border bg-muted/40 p-4 font-mono text-xs leading-relaxed"
-          >
-            <code>{css}</code>
-          </pre>
-          <p className="text-xs text-muted-foreground">
-            Paste it into your global CSS, after the Filter Bar variables that the install added.
-          </p>
-        </section>
+        </IconButton>
+        <Divider />
+        <button
+          type="button"
+          aria-pressed={cssOpen}
+          onClick={() => setCssOpen((open) => !open)}
+          className={cn(
+            "hidden h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 motion-reduce:transition-none lg:inline-flex",
+            cssOpen && "bg-muted",
+          )}
+        >
+          <CodeIcon aria-hidden className="size-3.5" />
+          CSS
+        </button>
+        <CopyButton css={css} className="lg:hidden" />
       </div>
     </main>
   );
 }
 
-function Control({
+/** A toolbar item: icon, name and current value; opens its control above the toolbar. */
+function ToolButton({
+  icon,
   label,
-  variable,
+  value,
   children,
 }: {
+  icon: ReactNode;
   label: string;
-  variable: string;
-  children: React.ReactNode;
+  value: string;
+  children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-medium">{label}</span>
-        <code className="text-[11px] text-muted-foreground">{variable}</code>
-      </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={`${label}: ${value}`}
+          className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2.5 text-xs outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=open]:bg-muted motion-reduce:transition-none [&_svg]:size-3.5"
+        >
+          <span className="flex size-4 items-center justify-center text-muted-foreground">{icon}</span>
+          <span className="flex flex-col items-start leading-tight">
+            <span className="text-[10px] text-muted-foreground">{label}</span>
+            <span className="font-medium">{value}</span>
+          </span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent side="top" sideOffset={10} aria-label={label} className="w-auto gap-2 p-3">
+        <p className="text-xs font-medium">{label}</p>
+        {children}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function IconButton({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 motion-reduce:transition-none [&_svg]:size-4"
+    >
       {children}
-    </div>
+    </button>
+  );
+}
+
+function Divider() {
+  return <span aria-hidden className="mx-1 h-6 w-px shrink-0 bg-border" />;
+}
+
+function CopyButton({ css, className }: { css: string; className?: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        await navigator.clipboard.writeText(css);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      className={cn(
+        "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-foreground px-3 text-xs font-medium text-background outline-none transition-opacity hover:opacity-90 focus-visible:ring-3 focus-visible:ring-ring/50 motion-reduce:transition-none",
+        className,
+      )}
+    >
+      {copied ? <CheckIcon aria-hidden className="size-3.5" /> : <CopyIcon aria-hidden className="size-3.5" />}
+      {copied ? "Copied" : "Copy CSS"}
+    </button>
+  );
+}
+
+function CssPanel({ css, onClose }: { css: string; onClose: () => void }) {
+  return (
+    <>
+      <div className="flex items-center gap-2 border-b px-3 py-2">
+        <PaletteIcon aria-hidden className="size-3.5 text-muted-foreground" />
+        <h2 className="text-xs font-medium">CSS</h2>
+        <div className="ml-auto flex items-center gap-1">
+          <CopyButton css={css} className="h-7" />
+          <IconButton label="Close the CSS panel" onClick={onClose}>
+            <XIcon aria-hidden />
+          </IconButton>
+        </div>
+      </div>
+      <pre
+        data-testid="customiser-css"
+        className="min-h-0 flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed"
+      >
+        <code>{css}</code>
+      </pre>
+      <p className="border-t px-4 py-3 text-xs text-pretty text-muted-foreground">
+        Paste into your global CSS, after the Filter Bar variables the install added. Light and
+        dark both covered.
+      </p>
+    </>
   );
 }

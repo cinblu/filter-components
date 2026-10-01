@@ -19,3 +19,12 @@ export const demoFilterDefinitions: FilterDefinition[] = [
   { id: "source", label: "Source", type: "multiSelect", tier: "more", options: toOptions(SOURCES) },
   { id: "batchId", label: "Batch ID", type: "text", tier: "more", searchPlaceholder: "Contains, e.g. 1004" },
 ];
+
+/**
+ * For previews in narrower frames: Created Date and Status up front, everything else in
+ * More Filters, so the toolbar stays on one line.
+ */
+export const compactDemoFilterDefinitions: FilterDefinition[] = demoFilterDefinitions.map(
+  (definition) =>
+    definition.id === "queue" ? { ...definition, tier: "more" as const } : definition,
+);

@@ -67,30 +67,59 @@ export function customAccent(hex: string): Accent {
   return { id: `custom:${hex}`, label: "Custom", light: colors, dark: colors };
 }
 
-/** The CSS for an accent: what the site applies, and what the customiser's Copy CSS gives. */
-export function accentCss(accent: Accent): string {
-  return [
-    `:root {\n  --fb-accent: ${accent.light.accent};\n  --fb-accent-foreground: ${accent.light.foreground};\n}`,
-    `.dark {\n  --fb-accent: ${accent.dark.accent};\n  --fb-accent-foreground: ${accent.dark.foreground};\n}`,
-  ].join("\n");
-}
+export type Density = "0.875" | "1" | "1.125";
+export type Radius = "0" | "0.25rem" | "0.375rem" | "0.5rem" | "999px";
+export type UnsetStyle = "dashed" | "outline" | "ghost";
 
 export interface SiteSettings {
   theme: Theme;
   accent: Accent;
   tooltips: boolean;
   applyMode: ApplyMode;
+  density: Density;
+  radius: Radius;
+  unsetStyle: UnsetStyle;
 }
 
-const DEFAULTS: SiteSettings = {
+export const DEFAULT_SETTINGS: SiteSettings = {
   theme: "light",
   accent: DEFAULT_ACCENT,
   tooltips: true,
   applyMode: "manual",
+  density: "1",
+  radius: "0.375rem",
+  unsetStyle: "dashed",
 };
+const DEFAULTS = DEFAULT_SETTINGS;
+
+/**
+ * The --fb-* overrides for the current look. The site applies exactly this, and the
+ * customiser's Copy CSS gives exactly this, so what you see is what you paste.
+ */
+export function overridesCss(settings: SiteSettings): string {
+  const { accent } = settings;
+  const root = [
+    `--fb-density: ${settings.density};`,
+    `--fb-chip-radius: ${settings.radius};`,
+    `--fb-chip-border-style: ${settings.unsetStyle === "dashed" ? "dashed" : "solid"};`,
+    `--fb-chip-unset-border-color: ${settings.unsetStyle === "ghost" ? "transparent" : "var(--border)"};`,
+    `--fb-accent: ${accent.light.accent};`,
+    `--fb-accent-foreground: ${accent.light.foreground};`,
+  ];
+  const dark = [
+    `--fb-accent: ${accent.dark.accent};`,
+    `--fb-accent-foreground: ${accent.dark.foreground};`,
+  ];
+  return [
+    "/* Filter Bar overrides */",
+    `:root {\n  ${root.join("\n  ")}\n}`,
+    `.dark {\n  ${dark.join("\n  ")}\n}`,
+    "",
+  ].join("\n");
+}
 
 const STORAGE_KEY = "filter-bar-site-settings";
-export const ACCENT_STYLE_ID = "filter-bar-accent";
+export const ACCENT_STYLE_ID = "filter-bar-overrides";
 
 // --- A tiny external store, so every page and control shares one set of settings ---------
 
@@ -103,7 +132,12 @@ function load(): SiteSettings {
   loaded = true;
   try {
     const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "null");
-    if (saved && typeof saved === "object") current = { ...DEFAULTS, ...saved };
+    if (saved && typeof saved === "object") {
+      // `css` is a cache for the head script; the settings themselves are the source.
+      const rest = { ...saved };
+      delete rest.css;
+      current = { ...DEFAULTS, ...rest };
+    }
   } catch {
     // Private mode or blocked storage: use the defaults.
   }
@@ -120,13 +154,14 @@ function applyToDocument(settings: SiteSettings) {
     style.id = ACCENT_STYLE_ID;
     document.head.appendChild(style);
   }
-  style.textContent = accentCss(settings.accent);
+  style.textContent = overridesCss(settings);
 }
 
 export function updateSiteSettings(patch: Partial<SiteSettings>) {
   current = { ...load(), ...patch };
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+    // The CSS is saved too, so the head script can apply it before the page paints.
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, css: overridesCss(current) }));
   } catch {
     // Not saved; still applied for this visit.
   }
@@ -144,11 +179,11 @@ export function useSiteSettings(): SiteSettings {
 }
 
 /**
- * Inline script for <head>: applies the saved theme and accent before the page paints, so
+ * Inline script: applies the saved theme and overrides before the page paints, so
  * there's no flash of the wrong theme. Light is the default.
  */
 export const siteSettingsScript = `(function(){try{var s=JSON.parse(localStorage.getItem(${JSON.stringify(
   STORAGE_KEY,
-)})||"null");if(!s)return;if(s.theme==="dark")document.documentElement.classList.add("dark");var a=s.accent;if(a&&a.light){var e=document.createElement("style");e.id=${JSON.stringify(
+)})||"null");if(!s)return;if(s.theme==="dark")document.documentElement.classList.add("dark");if(typeof s.css==="string"){var e=document.createElement("style");e.id=${JSON.stringify(
   ACCENT_STYLE_ID,
-)};e.textContent=":root{--fb-accent:"+a.light.accent+";--fb-accent-foreground:"+a.light.foreground+"}.dark{--fb-accent:"+a.dark.accent+";--fb-accent-foreground:"+a.dark.foreground+"}";document.head.appendChild(e)}}catch(_){}})()`;
+)};e.textContent=s.css;document.head.appendChild(e)}}catch(_){}})()`;

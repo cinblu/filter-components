@@ -4,8 +4,10 @@
 //   └──────────────────────── filters: wraps within its own area ────────────┘       └── fixed, right-aligned ──┘
 //
 // The filters wrap inside the left area, so Clear all, the count and the actions never move.
-// Clear all keeps its space while hidden, so it always appears in the same spot. On narrow
-// screens the right group drops below. Nothing scrolls sideways.
+// When there's a count or actions, Clear all keeps its space while hidden, so it always
+// appears in the same spot and nothing beside it shifts. With nothing beside it there's
+// nothing to shift, so it simply appears. On narrow screens the right group drops below.
+// Nothing scrolls sideways.
 
 "use client";
 
@@ -64,6 +66,7 @@ export function FilterBar({
   const chips = [...filters.quickFilters, ...filters.activeMoreFilters];
 
   const hasFilters = filters.activeCount > 0;
+  const hasRightContent = Boolean(resultCount || actions);
 
   return (
     <div
@@ -87,19 +90,20 @@ export function FilterBar({
         {sort && onSortChange && <SortChip sort={sort} onSortChange={onSortChange} />}
       </div>
 
-      <div className="ml-auto flex h-(--fb-chip-h) shrink-0 items-center gap-3">
-        {/* Clears filters only; search and sort stay (SPEC decision 5). Hidden, not removed,
-            when nothing is set, so it doesn't shift the count and actions. */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={filters.clearAll}
-          aria-hidden={hasFilters ? undefined : true}
-          tabIndex={hasFilters ? undefined : -1}
-          className={cn(
-            "h-(--fb-chip-h) px-(--fb-chip-px) text-(length:--fb-chip-font-size) text-muted-foreground",
-            !hasFilters && "invisible",
+      {(hasFilters || hasRightContent) && (
+        <div className="ml-auto flex h-(--fb-chip-h) shrink-0 items-center gap-3">
+          {/* Clears filters only; search and sort stay (SPEC decision 5). Hidden, not removed,
+              when nothing is set, so it doesn't shift the count and actions. */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={filters.clearAll}
+            aria-hidden={hasFilters ? undefined : true}
+            tabIndex={hasFilters ? undefined : -1}
+            className={cn(
+              "h-(--fb-chip-h) px-(--fb-chip-px) text-(length:--fb-chip-font-size) text-muted-foreground",
+              !hasFilters && "invisible",
           )}
         >
           Clear all
@@ -111,6 +115,7 @@ export function FilterBar({
         )}
         {actions}
       </div>
+      )}
     </div>
   );
 }

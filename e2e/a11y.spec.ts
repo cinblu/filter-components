@@ -40,7 +40,7 @@ for (const colorScheme of ["light", "dark"] as const) {
       if (!testInfo.title.startsWith("demo")) return;
       // Filters set, so set chips and Clear all are checked too.
       await page.goto("/demo?status=committed,failed&createdAt=last7d&workflow=escalation");
-      await expect(page.getByText(/^Showing [\d,]+ of 2,000$/)).toBeVisible();
+      await expect(page.getByText(/^([\d,]+ of )?2,000 batches$/)).toBeVisible();
       await expect(page.locator("html")).toHaveClass(colorScheme === "dark" ? /dark/ : /^(?!.*dark)/);
     });
 
