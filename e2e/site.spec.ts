@@ -123,6 +123,9 @@ test.describe("customiser", () => {
 });
 
 test.describe("main page", () => {
+  // These tests drive the preview themselves; reduced motion keeps the ghost tour out of it.
+  test.use({ reducedMotion: "reduce" });
+
   test("reads like a component page: overview, details, customise, install, usage, API", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
@@ -203,7 +206,7 @@ test.describe("main page", () => {
     }
   });
 
-  test("the 'try it' hint appears, then leaves on its own or on interaction", async ({ page }) => {
+  test("with reduced motion: a static 'try it' hint instead of the tour", async ({ page }) => {
     await page.goto("/");
     const hint = page.getByText("Try it: open a filter");
     await expect(hint).toBeVisible({ timeout: 3000 });
@@ -227,5 +230,59 @@ test.describe("main page", () => {
     await expect(remove.locator("svg")).toHaveClass(/rotate-45/);
     await remove.click();
     await expect(details.getByRole("button", { name: "Add Status filter" })).toBeVisible();
+  });
+});
+
+test.describe("ghost tour", () => {
+  test("plays the main interactions on the real component, then rests", async ({ page }) => {
+    await page.goto("/");
+    const preview = page.locator("#preview-panel-preview");
+    await expect(page.getByTestId("ghost-cursor")).toHaveAttribute("data-visible", "true", { timeout: 4000 });
+    // It opens Status, ticks two options and applies them…
+    await expect(preview.getByRole("button", { name: "Status filter: Committed, Failed. Edit" })).toBeVisible({
+      timeout: 10_000,
+    });
+    // …changes the sort…
+    await expect(preview.getByRole("button", { name: /^Sorted by Created Date, Oldest first/ })).toBeVisible({
+      timeout: 10_000,
+    });
+    // …and puts everything back.
+    await expect(preview.getByRole("button", { name: "Add Status filter" })).toBeVisible({ timeout: 10_000 });
+    // It never moves the page.
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  });
+
+  test("stops the moment you move your own mouse over the preview", async ({ page }) => {
+    await page.goto("/");
+    const cursor = page.getByTestId("ghost-cursor");
+    await expect(cursor).toHaveAttribute("data-visible", "true", { timeout: 4000 });
+    const box = (await page.locator("#preview-panel-preview").boundingBox())!;
+    // A point near the top of the preview, so it's on screen at any window height.
+    await page.mouse.move(box.x + box.width / 2, box.y + 120);
+    await expect(cursor).toHaveAttribute("data-visible", "false");
+    // Nothing else happens on its own afterwards, and no popover is left open.
+    await page.waitForTimeout(3000);
+    await expect(page.locator("[data-slot=popover-content]")).toHaveCount(0);
+    await expect(page.locator("#preview-panel-preview").getByRole("button", { name: "Add Status filter" })).toBeVisible();
+  });
+});
+
+test.describe("why page and social image", () => {
+  test("tells the story and links the article", async ({ page }) => {
+    await page.goto("/why");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Why it works this way");
+    const article = page.getByRole("link", { name: /Read the full article/ }).first();
+    await expect(article).toHaveAttribute("href", /medium\.com\/design-bootcamp\/crafting-a-modular-filtering-framework/);
+    await expect(page.getByRole("figure")).toHaveCount(8);
+  });
+
+  test("pages carry a social image", async ({ page, request }) => {
+    await page.goto("/");
+    const og = await page.locator('meta[property="og:image"]').getAttribute("content");
+    const twitterCard = await page.locator('meta[name="twitter:card"]').getAttribute("content");
+    expect(twitterCard).toBe("summary_large_image");
+    const response = await request.get(og!);
+    expect(response.ok()).toBe(true);
+    expect(response.headers()["content-type"]).toBe("image/png");
   });
 });

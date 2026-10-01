@@ -1,3 +1,4 @@
+import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 
 import { CodeBlock } from "@/components/site/code-block";
@@ -74,6 +75,16 @@ export default function Home() {
             Filters people can see, find and undo, in one row above your data. Install it with the
             shadcn CLI and make it yours.
           </p>
+          <Link
+            href="/why"
+            className="group inline-flex items-center gap-1 self-start text-sm font-medium"
+          >
+            Why it works this way
+            <ArrowRightIcon
+              aria-hidden
+              className="size-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
+            />
+          </Link>
         </div>
         <ComponentPreview
           code={USAGE}

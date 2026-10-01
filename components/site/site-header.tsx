@@ -4,6 +4,7 @@ import { MoonIcon, SunIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { REPO_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
 import { updateSiteSettings, useSiteSettings } from "@/lib/site-settings";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,8 @@ const NAV = [
   { href: "/demo", label: "Demo" },
   { href: "/customise", label: "Customise" },
   { href: "/docs", label: "Docs" },
+  { href: "/why", label: "Why" },
 ];
-
-export const REPO_URL = "https://github.com/cinblu/filter-components";
 
 /**
  * A slim top bar: page-level links only. Sections within a page are in the "On this page"

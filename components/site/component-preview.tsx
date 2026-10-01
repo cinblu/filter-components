@@ -2,12 +2,13 @@
 
 import { ArrowUpRightIcon, CodeIcon, EyeIcon, MousePointerClickIcon } from "lucide-react";
 import Link from "next/link";
-import { type RefObject, useEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/utils";
 
 import { CodeBlock } from "./code-block";
 import { OptionsPopover } from "./controls";
+import { GhostTour } from "./ghost-tour";
 import { CommandPill } from "./install-tabs";
 
 /**
@@ -17,6 +18,7 @@ import { CommandPill } from "./install-tabs";
 export function ComponentPreview({ preview, code }: { preview: React.ReactNode; code: string }) {
   const [tab, setTab] = useState<"preview" | "code">("preview");
   const stageRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
 
   return (
     <div className="flex flex-col gap-3">
@@ -61,7 +63,9 @@ export function ComponentPreview({ preview, code }: { preview: React.ReactNode; 
         <div id="preview-panel-code" role="tabpanel" hidden={tab !== "code"} className="p-2">
           <CodeBlock className="border-0 bg-transparent">{code}</CodeBlock>
         </div>
-        {tab === "preview" && <TryHint stageRef={stageRef} />}
+        {/* First view: a ghost cursor plays the main interactions. Under reduced motion, a
+            static "try it" hint instead. Either way, it goes once you start interacting. */}
+        {tab === "preview" && (reducedMotion ? <TryHint stageRef={stageRef} /> : <GhostTour stageRef={stageRef} />)}
       </div>
 
       <Link
@@ -75,14 +79,29 @@ export function ComponentPreview({ preview, code }: { preview: React.ReactNode; 
   );
 }
 
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+
+function useReducedMotion() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const query = window.matchMedia(REDUCED_MOTION);
+      query.addEventListener("change", onChange);
+      return () => query.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(REDUCED_MOTION).matches,
+    // On the server, assume motion is fine; the browser corrects it straight after.
+    () => false,
+  );
+}
+
 const HINT_DELAY_MS = 800;
 const HINT_VISIBLE_MS = 3600;
 const HINT_EXIT_MS = 500;
 
 /**
- * A one-off "try it" hint under the filter band. It blurs in shortly after load, blurs out a
- * few seconds later, and leaves at once if you start interacting. Under reduced motion it
- * fades without blur or movement.
+ * A one-off "try it" hint under the filter band, shown instead of the ghost tour when
+ * reduced motion is on. It fades in shortly after load, out a few seconds later, and leaves
+ * at once if you start interacting.
  */
 function TryHint({ stageRef }: { stageRef: RefObject<HTMLDivElement | null> }) {
   const [phase, setPhase] = useState<"waiting" | "in" | "out" | "gone">("waiting");

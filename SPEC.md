@@ -379,6 +379,16 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
 44. The page sits on a faint cutting-mat grid that fades towards the bottom.
 45. Detail cards lead with "Rows never jump" and "Humanised dates"; the tiers card's toolbar
     spans the card and wraps left-aligned, so added chips never spill out.
+46. The landing preview plays a ghost-cursor tour on the real component (open Status, tick
+    two, apply, change the sort, clear), only while on screen, at most three loops. It stops
+    at the first real mouse move over the preview, click or key press, closes any popover it
+    opened, and lets go of focus after each step. Under reduced motion it's replaced by the
+    static "try it" hint.
+47. `/why` tells the story from Nahid's article (problems with before/after sketches drawn
+    with the real chip styles, principles, craft, process, outcome) and links the article.
+    It's in the top bar and linked under the headline.
+48. Every page shares a 1200×630 social image (Open Graph and X) rendered with next/og: the
+    headline over a filter band. Set `NEXT_PUBLIC_SITE_URL` in production for absolute URLs.
 
 ## Awkward to implement — suggested changes
 Found while building and polishing. Each has a suggestion; none are blocking.

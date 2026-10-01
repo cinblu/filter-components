@@ -19,7 +19,8 @@ const scan = async (page: Page) => {
 
 for (const colorScheme of ["light", "dark"] as const) {
   test.describe(`${colorScheme} theme`, () => {
-    test.use({ viewport: { width: 1280, height: 800 } });
+    // Reduced motion keeps the landing page's ghost tour from changing the page mid-scan.
+    test.use({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
 
     test.beforeEach(async ({ page }) => {
       // The site's theme is a setting (light by default), stored like the Settings menu does.
@@ -28,7 +29,7 @@ for (const colorScheme of ["light", "dark"] as const) {
       }, colorScheme);
     });
 
-    for (const path of ["/", "/customise", "/docs"]) {
+    for (const path of ["/", "/customise", "/docs", "/why"]) {
       test(`${path} page`, async ({ page }) => {
         await page.goto(path);
         await page.waitForLoadState("networkidle");
