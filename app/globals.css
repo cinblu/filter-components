@@ -165,11 +165,40 @@
   --surface-raised: oklch(0.97 0 0);
   --surface-stage: oklch(1 0 0);
   --surface-grid: oklch(0.88 0 0);
+  /* The page canvas: a faint cutting-mat grid. */
+  --canvas-line: oklch(0.972 0 0);
+  --canvas-line-major: oklch(0.955 0 0);
 }
 .dark {
   --surface-raised: oklch(0.195 0 0);
   --surface-stage: oklch(0.145 0 0);
   --surface-grid: oklch(0.3 0 0);
+  --canvas-line: oklch(0.18 0 0);
+  --canvas-line-major: oklch(0.21 0 0);
+}
+
+/* A cutting-mat grid behind every page: fine lines, a slightly stronger line every fourth
+   cell, fading out towards the bottom so content always sits on a quiet surface. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--canvas-line-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--canvas-line-major) 1px, transparent 1px),
+    linear-gradient(var(--canvas-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--canvas-line) 1px, transparent 1px);
+  background-size: 96px 96px, 96px 96px, 24px 24px, 24px 24px;
+  background-position: -1px -1px;
+  mask-image: linear-gradient(to bottom, black 0%, rgb(0 0 0 / 0.6) 45%, transparent 90%);
+}
+
+/* The "try it" hint's pointer: a small tap, repeated. */
+@keyframes fb-tap {
+  0%, 60%, 100% { transform: translate(0, 0) scale(1); }
+  30% { transform: translate(-2px, -2px) scale(0.88); }
 }
 
 @utility dot-grid {

@@ -125,7 +125,9 @@ test.describe("customiser", () => {
 test.describe("main page", () => {
   test("reads like a component page: overview, details, customise, install, usage, API", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Filter Bar");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "A filtering framework for data-heavy products",
+    );
     expect(await page.getByRole("heading", { level: 2 }).allTextContents()).toEqual([
       "The details",
       "Make it yours",
@@ -181,12 +183,44 @@ test.describe("main page", () => {
     await expect(preview.getByRole("group", { name: "Filters" })).not.toContainText(/batches|Showing/);
   });
 
+  test("the tiers card keeps every chip in view as filters are added from More", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    const card = page.locator("#details > div > div").nth(3);
+    for (const name of ["Workflow", "Source"]) {
+      await card.getByRole("button", { name: "More Filters" }).click();
+      await page.getByRole("dialog", { name: "More Filters" }).getByRole("option", { name: new RegExp(name) }).click();
+      const panel = page.getByRole("group", { name: `${name} filter` });
+      await panel.getByRole("option").first().click();
+      const apply = panel.getByRole("button", { name: "Apply", exact: true });
+      if (await apply.count()) await apply.click();
+    }
+    const stage = await card.locator("[data-slot=filter-bar]").boundingBox();
+    for (const chip of await card.locator("[data-slot=filter-chip]").all()) {
+      const box = (await chip.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(stage!.x - 1);
+      expect(box.x + box.width).toBeLessThanOrEqual(stage!.x + stage!.width + 1);
+    }
+  });
+
+  test("the 'try it' hint appears, then leaves on its own or on interaction", async ({ page }) => {
+    await page.goto("/");
+    const hint = page.getByText("Try it: open a filter");
+    await expect(hint).toBeVisible({ timeout: 3000 });
+    await expect(hint).toHaveCount(0, { timeout: 6000 });
+
+    await page.reload();
+    await expect(hint).toBeVisible({ timeout: 3000 });
+    await page.locator("#preview-panel-preview").getByRole("button", { name: "Add Status filter" }).click();
+    await expect(hint).toHaveCount(0, { timeout: 1500 });
+  });
+
   test("detail cards are live: + becomes × on a real chip", async ({ page }) => {
     await page.goto("/");
     // The cards are server-rendered; wait for hydration before clicking.
     await page.waitForLoadState("networkidle");
-    // The first card: one Status chip on its own.
-    const details = page.locator("#details > div > div").first();
+    // The third card: one Status chip on its own.
+    const details = page.locator("#details > div > div").nth(2);
     await details.getByRole("button", { name: "Add Status filter" }).click();
     await page.getByRole("dialog", { name: "Status filter" }).getByRole("option", { name: "Failed" }).click();
     const remove = details.getByRole("button", { name: "Remove Status filter" });

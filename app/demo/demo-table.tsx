@@ -94,10 +94,20 @@ export interface DemoTableProps {
    * a narrower frame. "full" for the /demo page.
    */
   variant?: "full" | "compact";
+  /**
+   * Veil the table so attention goes to the filter band (the landing preview). The veil
+   * lifts while the pointer is over the table, so the rows stay readable.
+   */
+  focusToolbar?: boolean;
   className?: string;
 }
 
-export function DemoTable({ syncUrl = true, variant = "full", className }: DemoTableProps) {
+export function DemoTable({
+  syncUrl = true,
+  variant = "full",
+  focusToolbar = false,
+  className,
+}: DemoTableProps) {
   const definitions = variant === "compact" ? compactDemoFilterDefinitions : demoFilterDefinitions;
   const [data] = useState(() => generateDemoRows());
   const [search, setSearch] = useState("");
@@ -173,73 +183,81 @@ export function DemoTable({ syncUrl = true, variant = "full", className }: DemoT
         />
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
-        <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
-          <thead>
-            {table.getHeaderGroups().map((group) => (
-              <tr key={group.id}>
-                {group.headers.map((header) => {
-                  const sorted = header.column.getIsSorted();
-                  const meta = header.column.columnDef.meta as ColumnMeta | undefined;
-                  const SortIcon = sorted === "asc" ? ArrowUpIcon : sorted === "desc" ? ArrowDownIcon : ChevronsUpDownIcon;
-                  return (
-                    <th
-                      key={header.id}
-                      style={{ width: header.getSize() }}
-                      aria-sort={sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none"}
-                      className={cn(
-                        "sticky top-0 z-10 border-b bg-background px-4 py-2 text-left font-medium text-muted-foreground",
-                        meta?.numeric && "text-right",
-                      )}
-                    >
-                      <button
-                        type="button"
-                        onClick={header.column.getToggleSortingHandler()}
+      <div className="group/table relative flex min-h-0 flex-1 flex-col">
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
+          <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
+            <thead>
+              {table.getHeaderGroups().map((group) => (
+                <tr key={group.id}>
+                  {group.headers.map((header) => {
+                    const sorted = header.column.getIsSorted();
+                    const meta = header.column.columnDef.meta as ColumnMeta | undefined;
+                    const SortIcon = sorted === "asc" ? ArrowUpIcon : sorted === "desc" ? ArrowDownIcon : ChevronsUpDownIcon;
+                    return (
+                      <th
+                        key={header.id}
+                        style={{ width: header.getSize() }}
+                        aria-sort={sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none"}
                         className={cn(
-                          "-mx-1 inline-flex items-center gap-1 rounded-sm px-1 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
-                          sorted && "text-foreground",
+                          "sticky top-0 z-10 border-b bg-background px-4 py-2 text-left font-medium text-muted-foreground",
+                          meta?.numeric && "text-right",
                         )}
                       >
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        <SortIcon aria-hidden className={cn("size-3.5", !sorted && "opacity-40")} />
-                      </button>
-                    </th>
-                  );
-                })}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {paddingTop > 0 && (
-              <tr aria-hidden>
-                <td colSpan={columns.length} style={{ height: paddingTop }} />
-              </tr>
-            )}
-            {virtualRows.map((item) => (
-              <DataRow
-                key={rows[item.index].id}
-                row={rows[item.index]}
-                index={item.index}
-                measureRef={virtualizer.measureElement}
-              />
-            ))}
-            {paddingBottom > 0 && (
-              <tr aria-hidden>
-                <td colSpan={columns.length} style={{ height: paddingBottom }} />
-              </tr>
-            )}
-          </tbody>
-        </table>
+                        <button
+                          type="button"
+                          onClick={header.column.getToggleSortingHandler()}
+                          className={cn(
+                            "-mx-1 inline-flex items-center gap-1 rounded-sm px-1 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
+                            sorted && "text-foreground",
+                          )}
+                        >
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          <SortIcon aria-hidden className={cn("size-3.5", !sorted && "opacity-40")} />
+                        </button>
+                      </th>
+                    );
+                  })}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {paddingTop > 0 && (
+                <tr aria-hidden>
+                  <td colSpan={columns.length} style={{ height: paddingTop }} />
+                </tr>
+              )}
+              {virtualRows.map((item) => (
+                <DataRow
+                  key={rows[item.index].id}
+                  row={rows[item.index]}
+                  index={item.index}
+                  measureRef={virtualizer.measureElement}
+                />
+              ))}
+              {paddingBottom > 0 && (
+                <tr aria-hidden>
+                  <td colSpan={columns.length} style={{ height: paddingBottom }} />
+                </tr>
+              )}
+            </tbody>
+          </table>
 
-        {rows.length === 0 && (
-          <div className="flex flex-col items-center gap-2 py-16 text-sm text-muted-foreground">
-            <p>No batches match these filters.</p>
-            {filters.activeCount > 0 && (
-              <Button type="button" variant="outline" size="sm" onClick={filters.clearAll}>
-                Clear all filters
-              </Button>
-            )}
-          </div>
+          {rows.length === 0 && (
+            <div className="flex flex-col items-center gap-2 py-16 text-sm text-muted-foreground">
+              <p>No batches match these filters.</p>
+              {filters.activeCount > 0 && (
+                <Button type="button" variant="outline" size="sm" onClick={filters.clearAll}>
+                  Clear all filters
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+        {focusToolbar && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-20 bg-linear-to-b from-(--surface-stage)/55 to-(--surface-stage)/90 transition-opacity duration-300 group-hover/table:opacity-25 motion-reduce:transition-none"
+          />
         )}
       </div>
       <p

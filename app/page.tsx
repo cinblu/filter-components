@@ -66,24 +66,18 @@ export default function Home() {
     <PageShell sections={SECTIONS}>
       <section id="overview" aria-labelledby="overview-title" className="flex scroll-mt-24 flex-col gap-6">
         <div className="flex flex-col gap-3">
-          <h1 id="overview-title" className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Filter Bar
+          <p className="text-sm font-medium text-muted-foreground">Filter Bar</p>
+          <h1 id="overview-title" className="max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+            A filtering framework for data-heavy products
           </h1>
-          <p className="max-w-2xl text-base text-pretty text-muted-foreground">
-            A filter toolbar for data-heavy tables. Applied filters stay visible, the important ones
-            stay one click away, and the whole thing fits on one row, so the data keeps the screen.
+          <p className="max-w-xl text-base text-pretty text-muted-foreground">
+            Filters people can see, find and undo, in one row above your data. Install it with the
+            shadcn CLI and make it yours.
           </p>
-          <ul aria-label="Built with" className="flex flex-wrap gap-1.5">
-            {["shadcn/ui registry", "React", "Tailwind v4", "Keyboard first", "WCAG AA"].map((tag) => (
-              <li key={tag} className="rounded-md border bg-(--surface-raised) px-2 py-0.5 text-xs text-muted-foreground">
-                {tag}
-              </li>
-            ))}
-          </ul>
         </div>
         <ComponentPreview
           code={USAGE}
-          preview={<DemoClient syncUrl={false} variant="compact" className="h-[26rem]" />}
+          preview={<DemoClient syncUrl={false} variant="compact" focusToolbar className="h-[26rem]" />}
         />
       </section>
 
@@ -152,12 +146,6 @@ export default function Home() {
         </div>
       </Section>
 
-      <footer className="flex flex-col gap-1 border-t pt-6 text-xs text-muted-foreground">
-        <p>
-          Based on Nahid&apos;s article “Crafting a modular filtering framework for data-heavy
-          applications”. MIT licence.
-        </p>
-      </footer>
     </PageShell>
   );
 }

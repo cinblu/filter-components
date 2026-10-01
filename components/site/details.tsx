@@ -318,7 +318,8 @@ const tierDefinitions: FilterDefinition[] = [
 function TwoTiers() {
   const { applyMode, tooltips } = useSiteSettings();
   const filters = useFilters({ definitions: tierDefinitions, applyMode });
-  return <FilterBar filters={filters} tooltips={tooltips} className="justify-center [&>div:first-child]:flex-none" />;
+  // Full width and left-aligned, so added chips wrap like a real toolbar inside the card.
+  return <FilterBar filters={filters} tooltips={tooltips} className="w-full" />;
 }
 
 // --- The section ------------------------------------------------------------------
@@ -326,6 +327,18 @@ function TwoTiers() {
 export function Details() {
   return (
     <div className="grid gap-4 md:grid-cols-2">
+      <DetailCard
+        title="Rows never jump under your cursor"
+        why="Selected options move to the top when the list opens, then stay put while you tick. Reopen it to see the new order."
+      >
+        <FrozenOrder />
+      </DetailCard>
+      <DetailCard
+        title="Humanised dates, in one click"
+        why="“1 week ago”, not “2026-09-25 to 2026-10-01”. Presets read the way people talk, apply straight away, and stay relative in a shared link."
+      >
+        <OneClickDates />
+      </DetailCard>
       <DetailCard
         title="Add and remove with one control"
         why="The + turns into the × that removes the filter, and the chip eases to its new width, so neighbours slide instead of jump."
@@ -336,21 +349,9 @@ export function Details() {
       <DetailCard
         title="Important filters up front"
         why="A few quick filters stay visible. The rest are one search away in More Filters, and show as chips once they're used."
-        stageClassName="min-h-48"
+        stageClassName="min-h-48 justify-start px-5"
       >
         <TwoTiers />
-      </DetailCard>
-      <DetailCard
-        title="Rows never jump under your cursor"
-        why="Selected options move to the top when the list opens, then stay put while you tick. Reopen it to see the new order."
-      >
-        <FrozenOrder />
-      </DetailCard>
-      <DetailCard
-        title="Common dates in one click"
-        why="Presets apply straight away, even with manual apply. They're saved as “1 week ago”, not as dates, so a shared link stays relative."
-      >
-        <OneClickDates />
       </DetailCard>
       <DetailCard
         className="md:col-span-2"

@@ -371,6 +371,14 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
     Customiser choices are shared site-wide, so the whole site previews them.
 42. Light-theme `--muted-foreground` is slightly darker than shadcn's default so secondary
     text keeps 4.5:1 on the raised surfaces too (axe).
+43. Main page: headline "A filtering framework for data-heavy products", one-line
+    description, no tag pills, no footer. The first preview sits on its own (no grey
+    frame), with the table veiled so the filter band leads; the veil lifts on hover. A
+    "Try it: open a filter" hint blurs in after load and out after ~4 s, or at the first
+    interaction (fades only, under reduced motion).
+44. The page sits on a faint cutting-mat grid that fades towards the bottom.
+45. Detail cards lead with "Rows never jump" and "Humanised dates"; the tiers card's toolbar
+    spans the card and wraps left-aligned, so added chips never spill out.
 
 ## Awkward to implement — suggested changes
 Found while building and polishing. Each has a suggestion; none are blocking.
