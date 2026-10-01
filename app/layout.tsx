@@ -12,15 +12,24 @@ import "./globals.css";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
+/**
+ * The site's public address: NEXT_PUBLIC_SITE_URL if set, else Vercel's production URL, else
+ * this dev server.
+ */
+function siteUrl() {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  return `http://localhost:${process.env.PORT ?? 5000}`;
+}
+
 const description =
   "A filtering framework for data-heavy products: filters people can see, find and undo, in one row above your data. Install it with the shadcn CLI.";
 
 export const metadata: Metadata = {
   title: { default: "Filter Bar: a filtering framework for data-heavy products", template: "%s · Filter Bar" },
   description,
-  // Absolute URLs for the social image. Set NEXT_PUBLIC_SITE_URL in production; on Vercel,
-  // Next.js falls back to the deployment URL by itself.
-  metadataBase: process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : undefined,
+  // Absolute URLs for the social image.
+  metadataBase: new URL(siteUrl()),
   openGraph: {
     type: "website",
     siteName: "Filter Bar",
