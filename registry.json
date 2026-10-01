@@ -82,6 +82,21 @@
           "path": "registry/filter-bar/editors/date-range.tsx",
           "type": "registry:component",
           "target": "components/filter-bar/editors/date-range.tsx"
+        },
+        {
+          "path": "registry/filter-bar/editors/single-select.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/editors/single-select.tsx"
+        },
+        {
+          "path": "registry/filter-bar/editors/text.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/editors/text.tsx"
+        },
+        {
+          "path": "registry/filter-bar/editors/filter-editor.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/editors/filter-editor.tsx"
         }
       ]
     },

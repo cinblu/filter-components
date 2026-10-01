@@ -258,3 +258,18 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
     Rationale: keyboard users don't lose their place.
 16. Async `options` are loaded when the editor first opens and cached per loader. Until then,
     chips show raw values. Rationale: no fetching for filters nobody opens.
+17. The custom date range and the text editor keep Apply in instant mode too. Rationale: a
+    range takes two clicks and text takes many keystrokes; applying half-finished input would
+    run pointless queries.
+18. Custom range: the first click sets the start, the second the end (either order), a third
+    starts again. Clicking the same day twice gives a one-day range.
+19. The More Filters editor is a second panel inside the same popover, not a nested popover.
+    Rationale: one layer, so Escape, focus and outside clicks behave predictably.
+20. Hovering a menu item opens its editor after 150 ms, only at ≥ 640px, without taking focus,
+    and never replaces an editor that has focus or unapplied changes. Rationale: moving the
+    mouse towards the panel shouldn't open everything it crosses or throw work away.
+21. In the menu, → opens the editor only when the caret is at the end of the search text, and
+    ← returns to the list only when the caret is at the start of a text field. Rationale: the
+    arrow keys still move the caret while typing.
+22. Opening another filter's editor from the menu discards the previous editor's unapplied
+    changes. Choosing the already-selected single-select option just closes.

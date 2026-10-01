@@ -1,7 +1,8 @@
-// Test-only wiring of useFilters + FilterChip + MultiSelectEditor. Not part of the registry.
+// Test-only wiring of useFilters + chips + editors + More Filters menu. Not part of the registry.
 
-import { MultiSelectEditor } from "./editors/multi-select";
+import { FilterEditorPanel } from "./editors/filter-editor";
 import { FilterChip } from "./filter-chip";
+import { MoreFiltersMenu } from "./more-filters-menu";
 import type { FilterDefinition, FilterState } from "./types";
 import { type ApplyMode, useFilters } from "./use-filters";
 
@@ -35,6 +36,49 @@ export const statusDefinition: FilterDefinition = {
   ],
 };
 
+export const createdAtDefinition: FilterDefinition = {
+  id: "createdAt",
+  label: "Created Date",
+  type: "dateRange",
+  tier: "quick",
+};
+
+export const moreDefinitions: FilterDefinition[] = [
+  {
+    id: "workflow",
+    label: "Workflow",
+    type: "singleSelect",
+    tier: "more",
+    options: [
+      { value: "standard", label: "Standard Review" },
+      { value: "two-step", label: "Two-step Approval" },
+      { value: "redaction", label: "Redaction" },
+    ],
+  },
+  {
+    id: "assignee",
+    label: "Assignee",
+    type: "multiSelect",
+    tier: "more",
+    options: [
+      { value: "avrel", label: "Avrel" },
+      { value: "bexa", label: "Bexa" },
+      { value: "corvan", label: "Corvan" },
+    ],
+  },
+  {
+    id: "source",
+    label: "Source",
+    type: "multiSelect",
+    tier: "more",
+    options: [
+      { value: "upload", label: "Upload" },
+      { value: "email", label: "Email" },
+    ],
+  },
+  { id: "batchId", label: "Batch ID", type: "text", tier: "more" },
+];
+
 export function ChipHarness({
   definitions = [queueDefinition, statusDefinition],
   applyMode = "manual",
@@ -49,7 +93,7 @@ export function ChipHarness({
   const filters = useFilters({ definitions, applyMode, defaultValue, onChange });
   return (
     <div>
-      {definitions.map((definition) => {
+      {[...filters.quickFilters, ...filters.activeMoreFilters].map((definition) => {
         const editor = filters.openEditor(definition.id);
         return (
           <FilterChip
@@ -62,7 +106,7 @@ export function ChipHarness({
             }}
           >
             {({ close }) => (
-              <MultiSelectEditor
+              <FilterEditorPanel
                 definition={definition}
                 editor={editor}
                 applyMode={filters.applyMode}
@@ -72,6 +116,7 @@ export function ChipHarness({
           </FilterChip>
         );
       })}
+      {filters.moreFilters.length > 0 && <MoreFiltersMenu filters={filters} />}
       <button type="button">Outside</button>
       <output data-testid="applied">{JSON.stringify(filters.applied)}</output>
     </div>

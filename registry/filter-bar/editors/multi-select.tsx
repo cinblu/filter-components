@@ -28,17 +28,8 @@ import { Command, CommandInput, CommandItem, CommandList } from "@/components/ui
 import { Separator } from "@/components/ui/separator";
 
 import { useFilterOptions } from "../options";
-import type { FilterDefinition, FilterOption } from "../types";
-import type { ApplyMode, FilterEditor } from "../use-filters";
-
-export interface MultiSelectEditorProps {
-  definition: FilterDefinition;
-  /** From `useFilters().openEditor(definition.id)`. */
-  editor: FilterEditor;
-  applyMode: ApplyMode;
-  /** Called after applying, to close the popover. */
-  onDone: () => void;
-}
+import type { FilterOption } from "../types";
+import type { FilterEditorProps } from "./filter-editor";
 
 const SELECT_ALL = "__select-all__";
 const itemValue = (value: string) => `option:${value}`;
@@ -49,7 +40,13 @@ export function orderSelectedFirst(options: FilterOption[], selected: string[]):
   return [...options.filter((o) => set.has(o.value)), ...options.filter((o) => !set.has(o.value))];
 }
 
-export function MultiSelectEditor({ definition, editor, applyMode, onDone }: MultiSelectEditorProps) {
+export function MultiSelectEditor({
+  definition,
+  editor,
+  applyMode,
+  onDone,
+  autoFocus = true,
+}: FilterEditorProps) {
   const options = useFilterOptions(definition);
   const selected = new Set(Array.isArray(editor.pending) ? editor.pending : []);
 
@@ -63,7 +60,10 @@ export function MultiSelectEditor({ definition, editor, applyMode, onDone }: Mul
   if (options && !frozenOrder) setFrozenOrder(orderSelectedFirst(options, [...selected]));
 
   const [query, setQuery] = useState("");
-  const [highlighted, setHighlighted] = useState("");
+  // Start with the first row highlighted. cmdk moves focus into its own input whenever its
+  // highlight changes while *any* cmdk input has focus, so letting it pick the first row
+  // after mounting would pull focus out of the More Filters search on hover.
+  const [highlighted, setHighlighted] = useState(SELECT_ALL);
   // True after ↑/↓, false after typing. Decides whether Space toggles or types.
   const [navigating, setNavigating] = useState(false);
 
@@ -77,8 +77,8 @@ export function MultiSelectEditor({ definition, editor, applyMode, onDone }: Mul
   // Without a search input, focus the list itself so the keyboard works straight away.
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!searchable) rootRef.current?.focus();
-  }, [searchable]);
+    if (autoFocus && !searchable) rootRef.current?.focus();
+  }, [autoFocus, searchable]);
 
   // New values keep option order; values that aren't options (e.g. from an old URL) are kept.
   const setSelection = (next: Set<string>) => {
@@ -149,11 +149,11 @@ export function MultiSelectEditor({ definition, editor, applyMode, onDone }: Mul
       onKeyDown={handleKeyDown}
       tabIndex={searchable ? undefined : -1}
       label={`${definition.label} options`}
-      className="rounded-none! p-0 outline-none"
+      className="w-[var(--fb-popover-width,18rem)] rounded-none! p-0 outline-none"
     >
       {searchable && (
         <CommandInput
-          autoFocus
+          autoFocus={autoFocus}
           placeholder={placeholder}
           value={query}
           onValueChange={(next) => {

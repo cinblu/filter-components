@@ -2,19 +2,24 @@
 
 import { useState } from "react";
 
-import { MultiSelectEditor } from "@/registry/filter-bar/editors/multi-select";
+import { FilterEditorPanel } from "@/registry/filter-bar/editors/filter-editor";
 import { FilterChip } from "@/registry/filter-bar/filter-chip";
+import { MoreFiltersMenu } from "@/registry/filter-bar/more-filters-menu";
 import type { FilterDefinition, FilterOption } from "@/registry/filter-bar/types";
 import { type ApplyMode, type UseFiltersResult, useFilters } from "@/registry/filter-bar/use-filters";
-import { ASSIGNEES, QUEUES, STATUSES } from "@/lib/demo-data";
+import { ASSIGNEES, QUEUES, SOURCES, STATUSES, WORKFLOWS } from "@/lib/demo-data";
 
 const toOptions = (labels: readonly string[]): FilterOption[] =>
   labels.map((label) => ({ value: label.toLowerCase().replace(/\s+/g, "-"), label }));
 
 const definitions: FilterDefinition[] = [
+  { id: "createdAt", label: "Created Date", type: "dateRange", tier: "quick" },
   { id: "queue", label: "Queue", type: "multiSelect", tier: "quick", options: toOptions(QUEUES), searchPlaceholder: "Queues" },
   { id: "status", label: "Status", type: "multiSelect", tier: "quick", options: toOptions(STATUSES) },
-  { id: "assignee", label: "Assignee", type: "multiSelect", tier: "quick", options: toOptions(ASSIGNEES), searchPlaceholder: "Assignees" },
+  { id: "workflow", label: "Workflow", type: "singleSelect", tier: "more", options: toOptions(WORKFLOWS) },
+  { id: "assignee", label: "Assignee", type: "multiSelect", tier: "more", options: toOptions(ASSIGNEES), searchPlaceholder: "Assignees" },
+  { id: "source", label: "Source", type: "multiSelect", tier: "more", options: toOptions(SOURCES) },
+  { id: "batchId", label: "Batch ID", type: "text", tier: "more", searchPlaceholder: "e.g. B-10042" },
 ];
 
 // 500 synthetic options, to check the editor stays smooth (SPEC §6.1).
@@ -28,7 +33,7 @@ const stressDefinitions: FilterDefinition[] = [
   },
 ];
 
-function MultiSelectChip({ filters, definition }: { filters: UseFiltersResult; definition: FilterDefinition }) {
+function EditableChip({ filters, definition }: { filters: UseFiltersResult; definition: FilterDefinition }) {
   const editor = filters.openEditor(definition.id);
   return (
     <FilterChip
@@ -42,7 +47,7 @@ function MultiSelectChip({ filters, definition }: { filters: UseFiltersResult; d
       }}
     >
       {({ close }) => (
-        <MultiSelectEditor definition={definition} editor={editor} applyMode={filters.applyMode} onDone={close} />
+        <FilterEditorPanel definition={definition} editor={editor} applyMode={filters.applyMode} onDone={close} />
       )}
     </FilterChip>
   );
@@ -77,9 +82,10 @@ export function Playground() {
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium">Chips</h2>
         <div className="flex flex-wrap items-center gap-[var(--fb-chip-gap,0.375rem)]">
-          {definitions.map((definition) => (
-            <MultiSelectChip key={definition.id} filters={filters} definition={definition} />
+          {[...filters.quickFilters, ...filters.activeMoreFilters].map((definition) => (
+            <EditableChip key={definition.id} filters={filters} definition={definition} />
           ))}
+          <MoreFiltersMenu filters={filters} />
         </div>
         <pre className="rounded-md bg-muted p-3 text-xs">{JSON.stringify(filters.applied, null, 2)}</pre>
       </section>
@@ -87,7 +93,7 @@ export function Playground() {
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium">500 options</h2>
         <div className="flex flex-wrap items-center gap-[var(--fb-chip-gap,0.375rem)]">
-          <MultiSelectChip filters={stress} definition={stressDefinitions[0]} />
+          <EditableChip filters={stress} definition={stressDefinitions[0]} />
         </div>
       </section>
     </main>

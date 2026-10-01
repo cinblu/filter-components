@@ -127,8 +127,9 @@ export function FilterChip({
       </PopoverAnchor>
       <PopoverContent
         align="start"
+        collisionPadding={8}
         aria-label={`${label} filter`}
-        className="w-[var(--fb-popover-width,18rem)] gap-0 overflow-hidden p-0"
+        className="w-auto gap-0 overflow-hidden p-0"
       >
         {typeof children === "function" ? children({ close: () => setOpen(false) }) : children}
       </PopoverContent>

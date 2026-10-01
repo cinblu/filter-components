@@ -49,8 +49,11 @@ registry/
     filter-chip.tsx         # dashed "+ Label" ↔ filled "Label: value" chip
     more-filters-menu.tsx   # searchable menu with nested editors
     editors/
+      filter-editor.tsx     # picks the editor for a filter type
       multi-select.tsx
+      single-select.tsx
       date-range.tsx
+      text.tsx
     sort-chip.tsx
     presets.ts              # date presets, resolved at query time
     summary.ts              # chip summary text ("Status: Open, +2")
