@@ -7,7 +7,6 @@ import { type RefObject, useEffect, useRef, useState, useSyncExternalStore } fro
 import { cn } from "@/lib/utils";
 
 import { CodeBlock } from "./code-block";
-import { OptionsPopover } from "./controls";
 import { GhostTour } from "./ghost-tour";
 import { CommandPill } from "./install-tabs";
 
@@ -48,9 +47,6 @@ export function ComponentPreview({ preview, code }: { preview: React.ReactNode; 
           ))}
         </div>
         <CommandPill className="hidden max-w-md flex-1 md:flex" />
-        <div className="ml-auto flex items-center gap-1">
-          <OptionsPopover />
-        </div>
       </div>
 
       {/* A grey frame around the stage only, so the live component sits on a raised tray. */}

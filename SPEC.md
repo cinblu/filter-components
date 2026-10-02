@@ -395,6 +395,14 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
     URL, written `{{SITE_URL}}` in registry.json and filled in by `pnpm registry:build`.
 50. The adapter's filter functions are typed `FilterFn<any>` (like TanStack's built-ins), so
     they fit a column of any row type without a cast. Found by the fresh-app install test.
+52. Site chrome: the top bar shows "Filters Framework" (cone icon, Courier Prime) as a plain
+    link home, page links (Home, Demo, Customise, Docs, Why) with an underline that tracks
+    hover and focus and rests under the current page, and Options / GitHub / theme on the
+    right, padded equally from both window edges. Dark is the default theme. Chip radius
+    options are 0, 4, 8 and pill (site default 4). A footer credits Nahid (LinkedIn) and the
+    article on Home, Docs and Why.
+53. /demo: the page is opaque (no grid behind it), the filter band is a raised surface above
+    the table, and the table is veiled like the landing preview so the filters lead.
 51. Requires a Radix-based shadcn style. Tested in a fresh Next.js app: radix-nova installs,
     typechecks, lints, builds and works; base-nova (Base UI, shadcn's current `--defaults`)
     fails to typecheck (popover/tooltip APIs differ). Supporting Base UI is a follow-up.

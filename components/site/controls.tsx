@@ -45,7 +45,6 @@ export function RadiusControl() {
       options={[
         { value: "0", label: "0" },
         { value: "0.25rem", label: "4" },
-        { value: "0.375rem", label: "6" },
         { value: "0.5rem", label: "8" },
         { value: "999px", label: "Pill" },
       ]}

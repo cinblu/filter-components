@@ -4,17 +4,40 @@ import { expect, test } from "@playwright/test";
 // the landing page's pitch and install command.
 
 test.describe("settings", () => {
-  // Even with a dark system theme, the site starts light.
-  test.use({ colorScheme: "dark" });
+  // Even with a light system theme, the site starts dark.
+  test.use({ colorScheme: "light" });
 
-  test("light by default; the theme toggle persists across reloads", async ({ page }) => {
+  test("dark by default; the theme toggle persists across reloads", async ({ page }) => {
     await page.goto("/");
     const html = page.locator("html");
+    await expect(html).toHaveClass(/dark/);
+    await page.getByRole("button", { name: "Switch to light theme" }).click();
     await expect(html).not.toHaveClass(/dark/);
-    await page.getByRole("button", { name: "Switch to dark theme" }).click();
-    await expect(html).toHaveClass(/dark/);
     await page.reload();
-    await expect(html).toHaveClass(/dark/);
+    await expect(html).not.toHaveClass(/dark/);
+  });
+
+  test("the nav marks the current page; the title goes home", async ({ page }) => {
+    await page.goto("/docs");
+    const nav = page.getByRole("navigation", { name: "Main" });
+    await expect(nav.getByRole("link", { name: "Docs" })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current", "page");
+    await page.getByRole("link", { name: "Filters Framework, home" }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(nav.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+  });
+
+  test("credits link to Nahid's LinkedIn and the article", async ({ page }) => {
+    await page.goto("/");
+    const footer = page.locator("footer");
+    await expect(footer.getByRole("link", { name: "Nahid Noushathu" })).toHaveAttribute(
+      "href",
+      "https://www.linkedin.com/in/nahidnoushathu",
+    );
+    await expect(footer.getByRole("link", { name: /Crafting a modular filtering framework/ })).toHaveAttribute(
+      "href",
+      /medium\.com/,
+    );
   });
 
   test("accent changes --fb-accent everywhere, and persists", async ({ page }) => {
@@ -23,9 +46,10 @@ test.describe("settings", () => {
     await page.getByRole("radio", { name: "Violet" }).click();
     const accentOf = () =>
       page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--fb-accent"));
-    expect(await accentOf()).toBe("oklch(0.5 0.2 295)");
+    // The site is dark by default, so this is violet's dark-theme shade.
+    expect(await accentOf()).toBe("oklch(0.76 0.13 295)");
     await page.reload();
-    expect(await accentOf()).toBe("oklch(0.5 0.2 295)");
+    expect(await accentOf()).toBe("oklch(0.76 0.13 295)");
   });
 
   test("tooltips can be turned off", async ({ page }) => {

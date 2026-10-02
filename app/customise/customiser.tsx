@@ -31,7 +31,7 @@ import { AccentControl, DensityControl, RadiusControl, UnsetStyleControl } from 
 import { DemoClient } from "../demo/demo-client";
 
 const DENSITY_LABEL = { "0.875": "Compact", "1": "Default", "1.125": "Comfortable" } as const;
-const RADIUS_LABEL = { "0": "0", "0.25rem": "4px", "0.375rem": "6px", "0.5rem": "8px", "999px": "Pill" } as const;
+const RADIUS_LABEL = { "0": "0", "0.25rem": "4px", "0.5rem": "8px", "999px": "Pill" } as const;
 const UNSET_LABEL = { dashed: "Dashed", outline: "Outline", ghost: "Ghost" } as const;
 
 export function Customiser() {

@@ -68,7 +68,8 @@ export function customAccent(hex: string): Accent {
 }
 
 export type Density = "0.875" | "1" | "1.125";
-export type Radius = "0" | "0.25rem" | "0.375rem" | "0.5rem" | "999px";
+export type Radius = "0" | "0.25rem" | "0.5rem" | "999px";
+const RADII: Radius[] = ["0", "0.25rem", "0.5rem", "999px"];
 export type UnsetStyle = "dashed" | "outline" | "ghost";
 
 export interface SiteSettings {
@@ -82,12 +83,12 @@ export interface SiteSettings {
 }
 
 export const DEFAULT_SETTINGS: SiteSettings = {
-  theme: "light",
+  theme: "dark",
   accent: DEFAULT_ACCENT,
   tooltips: true,
   applyMode: "manual",
   density: "1",
-  radius: "0.375rem",
+  radius: "0.25rem",
   unsetStyle: "dashed",
 };
 const DEFAULTS = DEFAULT_SETTINGS;
@@ -137,6 +138,8 @@ function load(): SiteSettings {
       const rest = { ...saved };
       delete rest.css;
       current = { ...DEFAULTS, ...rest };
+      // Settings saved by an older version may hold a radius that's no longer offered.
+      if (!RADII.includes(current.radius)) current.radius = DEFAULTS.radius;
     }
   } catch {
     // Private mode or blocked storage: use the defaults.
@@ -180,10 +183,10 @@ export function useSiteSettings(): SiteSettings {
 
 /**
  * Inline script: applies the saved theme and overrides before the page paints, so
- * there's no flash of the wrong theme. Light is the default.
+ * there's no flash of the wrong theme. Dark is the default (the server renders it).
  */
 export const siteSettingsScript = `(function(){try{var s=JSON.parse(localStorage.getItem(${JSON.stringify(
   STORAGE_KEY,
-)})||"null");if(!s)return;if(s.theme==="dark")document.documentElement.classList.add("dark");if(typeof s.css==="string"){var e=document.createElement("style");e.id=${JSON.stringify(
+)})||"null");if(!s)return;if(s.theme==="light")document.documentElement.classList.remove("dark");if(typeof s.css==="string"){var e=document.createElement("style");e.id=${JSON.stringify(
   ACCENT_STYLE_ID,
 )};e.textContent=s.css;document.head.appendChild(e)}}catch(_){}})()`;

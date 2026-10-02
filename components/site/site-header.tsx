@@ -1,17 +1,19 @@
 "use client";
 
-import { MoonIcon, SunIcon } from "lucide-react";
+import { HomeIcon, MoonIcon, SunIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
 
 import { REPO_URL } from "@/lib/links";
-import { cn } from "@/lib/utils";
 import { updateSiteSettings, useSiteSettings } from "@/lib/site-settings";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 import { OptionsPopover } from "./controls";
 
 const NAV = [
+  { href: "/", label: "Home", icon: HomeIcon },
   { href: "/demo", label: "Demo" },
   { href: "/customise", label: "Customise" },
   { href: "/docs", label: "Docs" },
@@ -19,37 +21,30 @@ const NAV = [
 ];
 
 /**
- * A slim top bar: page-level links only. Sections within a page are in the "On this page"
- * rail, so this stays short.
+ * The top bar: the site title on the left, page links after it, and site-wide controls on the
+ * right, with the same padding from both edges of the window. Sections within a page live in
+ * the "On this page" rail, so this stays short.
  */
 export function SiteHeader() {
-  const pathname = usePathname();
   const settings = useSiteSettings();
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight whitespace-nowrap">
-          <Logo />
-          Filter Bar
+      <div className="flex h-14 w-full items-center gap-4 px-4 sm:gap-10 sm:px-6">
+        {/* The title: a plain way home, with no hover or active state of its own. */}
+        <Link
+          href="/"
+          aria-label="Filters Framework, home"
+          className="flex shrink-0 items-center gap-2 rounded-sm font-(family-name:--font-typewriter) text-[1.0625rem] font-bold tracking-tight whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <ConeIcon className="size-5 text-(--fb-accent)" />
+          <span className="hidden sm:inline">Filters Framework</span>
         </Link>
-        <nav aria-label="Main" className="flex min-w-0 items-center gap-0.5 text-sm sm:gap-1">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={pathname === item.href ? "page" : undefined}
-              className={cn(
-                "rounded-md px-2 py-1 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none",
-                pathname === item.href && "text-foreground",
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="ml-auto flex items-center gap-1">
-          {pathname === "/demo" && <OptionsPopover />}
+
+        <NavLinks />
+
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <OptionsPopover />
           <Button asChild variant="ghost" size="icon-sm" aria-label="Source on GitHub">
             <a href={REPO_URL}>
               <GitHubMark />
@@ -69,12 +64,98 @@ export function SiteHeader() {
   );
 }
 
-/** A tiny mark: a dashed chip and a set chip. */
-function Logo() {
+/**
+ * Page links with one underline that tracks the pointer (and keyboard focus) from link to
+ * link, then settles back under the current page.
+ */
+function NavLinks() {
+  const pathname = usePathname();
+  const listRef = useRef<HTMLDivElement>(null);
+  const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const [hovered, setHovered] = useState<number | null>(null);
+  const [bar, setBar] = useState<CSSProperties>({ opacity: 0 });
+
+  const activeIndex = NAV.findIndex((item) =>
+    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href),
+  );
+  const target = hovered ?? (activeIndex >= 0 ? activeIndex : null);
+
+  // Measure the link the underline should sit under (layout effect: no flash at the old spot).
+  useLayoutEffect(() => {
+    const measure = () => {
+      const link = target === null ? null : linkRefs.current[target];
+      const list = listRef.current;
+      if (!link || !list) return setBar((prev) => ({ ...prev, opacity: 0 }));
+      setBar({
+        opacity: 1,
+        width: link.offsetWidth - 16,
+        transform: `translateX(${link.offsetLeft - list.scrollLeft + 8}px)`,
+      });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [target]);
+
   return (
-    <svg aria-hidden viewBox="0 0 20 20" className="size-5">
-      <rect x="1.5" y="6" width="7" height="8" rx="2" fill="none" stroke="currentColor" strokeDasharray="2 1.5" opacity="0.5" />
-      <rect x="10.5" y="6" width="8" height="8" rx="2" fill="var(--fb-accent)" />
+    <nav aria-label="Main" className="relative flex h-full min-w-0 items-stretch">
+      <div
+        ref={listRef}
+        className="flex h-full min-w-0 items-stretch overflow-x-auto [scrollbar-width:none]"
+        onPointerLeave={() => setHovered(null)}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHovered(null);
+        }}
+      >
+        {NAV.map((item, index) => {
+          const active = index === activeIndex;
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              ref={(node) => {
+                linkRefs.current[index] = node;
+              }}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              onPointerEnter={() => setHovered(index)}
+              onFocus={() => setHovered(index)}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 px-2 text-sm text-muted-foreground outline-none transition-colors duration-150 hover:text-foreground focus-visible:text-foreground motion-reduce:transition-none",
+                active && "text-foreground",
+              )}
+            >
+              {Icon && <Icon aria-hidden className="size-3.5" />}
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
+      {/* The underline, on the header's bottom edge. */}
+      <span
+        aria-hidden
+        style={bar}
+        className="pointer-events-none absolute bottom-[-1px] left-0 h-0.5 rounded-full bg-foreground transition-[transform,width,opacity] duration-200 ease-out motion-reduce:transition-none"
+      />
+    </nav>
+  );
+}
+
+/** Lucide's "cone". */
+function ConeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="m20.9 18.55-8-15.98a1 1 0 0 0-1.8 0l-8 15.98" />
+      <ellipse cx="12" cy="19" rx="9" ry="3" />
     </svg>
   );
 }

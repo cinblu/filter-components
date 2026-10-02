@@ -10,8 +10,9 @@ export const metadata: Metadata = {
 export default function DemoPage() {
   // Fills the window below the site header; the table scrolls inside.
   return (
-    <main className="flex h-[calc(100dvh-3.5rem)] flex-col">
-      <DemoClient className="min-h-0 flex-1" />
+    // An opaque surface, so the page grid doesn't show through the table.
+    <main className="flex h-[calc(100dvh-3.5rem)] flex-col bg-(--surface-stage)">
+      <DemoClient focusToolbar className="min-h-0 flex-1" />
     </main>
   );
 }

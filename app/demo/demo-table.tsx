@@ -169,7 +169,8 @@ export function DemoTable({
 
   return (
     <div className={cn("flex flex-col", className)}>
-      <div className="border-b px-4 py-3">
+      {/* The filter band sits on its own raised surface, above the table. */}
+      <div className="relative z-30 border-b bg-background px-4 py-3 shadow-sm">
         <FilterBar
           filters={filters}
           search={
