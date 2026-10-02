@@ -43,14 +43,14 @@ const STATUS_DOT: Record<string, string> = {
 // Columns share ids with the filter definitions, so the adapter's columnFilters line up.
 // Select columns are keyed by slug for filtering and render the label.
 const columns: ColumnDef<DemoRow>[] = [
-  { id: "batchId", header: "Batch ID", accessorKey: "batchId", filterFn: textFn as FilterFn<DemoRow>, size: 180, meta: { mono: true } },
-  { id: "createdAt", header: "Created Date", accessorKey: "createdAt", filterFn: dateRangeFn as FilterFn<DemoRow>, size: 230, cell: ({ getValue }) => format(new Date(getValue<string>()), "MMM d, yyyy, HH:mm") },
-  { id: "queue", header: "Queue", accessorFn: (row) => slug(row.queue), filterFn: multiSelectFn as FilterFn<DemoRow>, size: 220, cell: ({ row }) => row.original.queue },
+  { id: "batchId", header: "Batch ID", accessorKey: "batchId", filterFn: textFn, size: 180, meta: { mono: true } },
+  { id: "createdAt", header: "Created Date", accessorKey: "createdAt", filterFn: dateRangeFn, size: 230, cell: ({ getValue }) => format(new Date(getValue<string>()), "MMM d, yyyy, HH:mm") },
+  { id: "queue", header: "Queue", accessorFn: (row) => slug(row.queue), filterFn: multiSelectFn, size: 220, cell: ({ row }) => row.original.queue },
   {
     id: "status",
     header: "Status",
     accessorFn: (row) => slug(row.status),
-    filterFn: multiSelectFn as FilterFn<DemoRow>,
+    filterFn: multiSelectFn,
     size: 170,
     cell: ({ row }) => (
       <span className="inline-flex items-center gap-1.5">
@@ -59,10 +59,10 @@ const columns: ColumnDef<DemoRow>[] = [
       </span>
     ),
   },
-  { id: "workflow", header: "Workflow", accessorFn: (row) => slug(row.workflow), filterFn: singleSelectFn as FilterFn<DemoRow>, size: 240, cell: ({ row }) => row.original.workflow },
-  { id: "assignee", header: "Assignee", accessorFn: (row) => slug(row.assignee), filterFn: multiSelectFn as FilterFn<DemoRow>, size: 180, cell: ({ row }) => row.original.assignee },
+  { id: "workflow", header: "Workflow", accessorFn: (row) => slug(row.workflow), filterFn: singleSelectFn, size: 240, cell: ({ row }) => row.original.workflow },
+  { id: "assignee", header: "Assignee", accessorFn: (row) => slug(row.assignee), filterFn: multiSelectFn, size: 180, cell: ({ row }) => row.original.assignee },
   { id: "pages", header: "Pages", accessorKey: "pages", size: 120, meta: { numeric: true } },
-  { id: "source", header: "Source", accessorFn: (row) => slug(row.source), filterFn: multiSelectFn as FilterFn<DemoRow>, size: 160, cell: ({ row }) => row.original.source },
+  { id: "source", header: "Source", accessorFn: (row) => slug(row.source), filterFn: multiSelectFn, size: 160, cell: ({ row }) => row.original.source },
 ];
 
 const COLUMN_LABELS = Object.fromEntries(columns.map((c) => [c.id, String(c.header)]));

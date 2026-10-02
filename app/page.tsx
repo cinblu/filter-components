@@ -111,7 +111,7 @@ export default function Home() {
       <Section
         id="installation"
         title="Installation"
-        lead="The shadcn CLI copies the source into your project, with the shadcn components, packages and CSS variables it needs."
+        lead="The shadcn CLI copies the source into your project, with the shadcn components, packages and CSS variables it needs. It needs a Radix-based shadcn style (init with --base radix); Base UI styles aren't supported yet."
       >
         <InstallTabs />
         <p className="text-sm text-muted-foreground">Filtering in the browser with TanStack Table? Add the adapter too:</p>

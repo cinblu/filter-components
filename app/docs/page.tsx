@@ -69,7 +69,7 @@ export function Documents() {
 const TANSTACK = `
 import {
   dateRangeFn, multiSelectFn, singleSelectFn, textFn, toColumnFilters,
-} from "@/components/filter-bar/tanstack-adapter";
+} from "@/components/filter-bar-tanstack/adapter";
 
 // Give each column the same id as its filter, and the matching filter function.
 const columns = [
@@ -123,7 +123,11 @@ export default function DocsPage() {
         </header>
 
         <Section id="install" title="Install">
-          <p>In a project set up with shadcn/ui and Tailwind CSS v4:</p>
+          <p>
+            In a project with Tailwind CSS v4 and shadcn/ui set up with a <strong>Radix-based
+            style</strong> (for example <code>npx shadcn@latest init --base radix</code>). Base UI
+            styles aren&apos;t supported yet: the popovers use Radix-only APIs.
+          </p>
           <InstallTabs />
           <p>
             This adds the files, the shadcn components they use (button, calendar, command,

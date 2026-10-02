@@ -127,7 +127,14 @@
           "--fb-chip-px": "calc(0.5rem * var(--fb-density))",
           "--fb-row-py": "calc(0.375rem * var(--fb-density))"
         }
-      }
+      },
+      "author": "Nahid Noushathu",
+      "categories": [
+        "filters",
+        "table",
+        "toolbar"
+      ],
+      "docs": "Filter Bar is in components/filter-bar. Chip tooltips need <TooltipProvider> (components/ui/tooltip) somewhere above the bar, usually in app/layout.tsx. Docs: {{SITE_URL}}/docs"
     },
     {
       "name": "filter-bar-tanstack",
@@ -141,9 +148,18 @@
         {
           "path": "registry/filter-bar-tanstack/adapter.ts",
           "type": "registry:lib",
-          "target": "components/filter-bar/tanstack-adapter.ts"
+          "target": "components/filter-bar-tanstack/adapter.ts"
         }
-      ]
+      ],
+      "author": "Nahid Noushathu",
+      "categories": [
+        "filters",
+        "table"
+      ],
+      "registryDependencies": [
+        "{{SITE_URL}}/r/filter-bar.json"
+      ],
+      "docs": "Adapter is in components/filter-bar-tanstack/adapter.ts. Give each column the id of its filter and the matching filterFn, then pass toColumnFilters(filters.applied, definitions) as columnFilters. Docs: {{SITE_URL}}/docs#tanstack"
     }
   ]
 }

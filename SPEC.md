@@ -389,6 +389,15 @@ Defaults chosen where the article didn't say. Nahid can override any of them.
     It's in the top bar and linked under the headline.
 48. Every page shares a 1200×630 social image (Open Graph and X) rendered with next/og: the
     headline over a filter band. Set `NEXT_PUBLIC_SITE_URL` in production for absolute URLs.
+49. Registry: the adapter installs to `components/filter-bar-tanstack/adapter.ts` and imports
+    the bar relatively (`../filter-bar/…`), which works both in this repo and once installed;
+    the CLI doesn't rewrite custom `@/registry/…` paths. Its dependency on `filter-bar` is a
+    URL, written `{{SITE_URL}}` in registry.json and filled in by `pnpm registry:build`.
+50. The adapter's filter functions are typed `FilterFn<any>` (like TanStack's built-ins), so
+    they fit a column of any row type without a cast. Found by the fresh-app install test.
+51. Requires a Radix-based shadcn style. Tested in a fresh Next.js app: radix-nova installs,
+    typechecks, lints, builds and works; base-nova (Base UI, shadcn's current `--defaults`)
+    fails to typecheck (popover/tooltip APIs differ). Supporting Base UI is a follow-up.
 
 ## Awkward to implement — suggested changes
 Found while building and polishing. Each has a suggestion; none are blocking.

@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "registry:build": "shadcn build"
+    "registry:build": "node scripts/build-registry.mjs"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
@@ -48,5 +48,6 @@
     "typescript": "^5",
     "vitest": "^5.0.2"
   },
-  "packageManager": "pnpm@12.8.1"
+  "packageManager": "pnpm@12.8.1",
+  "license": "MIT"
 }
