@@ -65,7 +65,7 @@ registry/
     types.ts
   filter-bar-tanstack/
     adapter.ts              # maps applied filters to TanStack columnFilters
-app/                        # docs site: /, /demo, /customise, /docs
+app/                        # site: /, /demo, /customise, /docs, /case-study, /llms.txt
 components/site/            # site-only UI (header + Settings, code blocks, pickers)
 lib/site-settings.ts        # theme, accent, tooltips, apply mode for the demos
 lib/demo-data.ts            # synthetic, seeded data only

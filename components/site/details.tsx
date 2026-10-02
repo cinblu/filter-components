@@ -29,7 +29,7 @@ const toOptions = (labels: readonly string[]): FilterOption[] =>
   labels.map((label) => ({ value: slug(label), label }));
 
 /** A detail card: the interaction on a stage, then what it is and why. */
-function DetailCard({
+export function DetailCard({
   title,
   why,
   children,
@@ -70,7 +70,7 @@ const statusDefinition: FilterDefinition[] = [
   { id: "status", label: "Status", type: "singleSelect", tier: "quick", options: toOptions(STATUSES) },
 ];
 
-function AddRemove() {
+export function AddRemove() {
   const { applyMode, tooltips } = useSiteSettings();
   const filters = useFilters({ definitions: statusDefinition, applyMode });
   return (
@@ -94,7 +94,7 @@ const queueDefinition: FilterDefinition = {
   searchPlaceholder: "Queues",
 };
 
-function FrozenOrder() {
+export function FrozenOrder() {
   const { applyMode } = useSiteSettings();
   const filters = useFilters({
     definitions: [queueDefinition],
@@ -134,7 +134,7 @@ const createdAtDefinition: FilterDefinition = {
   tier: "quick",
 };
 
-function OneClickDates() {
+export function OneClickDates() {
   const { applyMode, tooltips } = useSiteSettings();
   const filters = useFilters({
     definitions: [createdAtDefinition],
@@ -215,7 +215,7 @@ const MINI_COLUMNS: { id: keyof MiniRow; label: string; numeric?: boolean }[] = 
   { id: "pages", label: "Pages", numeric: true },
 ];
 
-function SortStaysVisible() {
+export function SortStaysVisible() {
   const [sort, setSort] = useState<SortState | undefined>({
     columnId: "pages",
     label: "Pages",
@@ -315,7 +315,7 @@ const tierDefinitions: FilterDefinition[] = [
   { id: "batchId", label: "Batch ID", type: "text", tier: "more", searchPlaceholder: "e.g. 1004" },
 ];
 
-function TwoTiers() {
+export function TwoTiers() {
   const { applyMode, tooltips } = useSiteSettings();
   const filters = useFilters({ definitions: tierDefinitions, applyMode });
   // Full width and left-aligned, so added chips wrap like a real toolbar inside the card.

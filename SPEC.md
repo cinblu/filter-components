@@ -427,3 +427,13 @@ Found while building and polishing. Each has a suggestion; none are blocking.
 7. **Custom date shows dates; the design shows date-times** (`2025-07-17 11:00 PM → …`).
    Custom ranges are whole days (§2), so times would always read 12:00 AM / 11:59 PM. Suggest
    keeping dates on the chip and showing times only in the preset tooltip, as now.
+54. `/why` became `/case-study` (308 redirect): Nahid's portfolio case study, dark, Fraunces
+    headings, visuals first using the live components (hero table, principles, craft cards,
+    before/after sketches), three impacts (5× faster filtering, 3+ products on one pattern,
+    1 command to install), and a "component system for people and agents" chapter. A
+    portfolio card on Framer links straight to it.
+55. Agent-ready: `/llms.txt` summarises install and usage for AI tools, and the registry works
+    as a named registry (`"@filters": "<site>/r/{name}.json"` in components.json), so
+    `shadcn add @filters/filter-bar`, `shadcn search @filters` and the shadcn MCP server can
+    find and install it. Verified against the live site.
+

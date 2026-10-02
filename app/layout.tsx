@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Courier_Prime, Geist, Geist_Mono } from "next/font/google";
+import { Courier_Prime, Fraunces, Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 
 import { siteSettingsScript } from "@/lib/site-settings";
@@ -12,6 +12,8 @@ import "./globals.css";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 // A typewriter serif, used only for the site title so it reads differently from the UI.
+// A soft display serif for the case study's headings.
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-display" });
 const courierPrime = Courier_Prime({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-typewriter" });
 
 /**
@@ -50,7 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       // Dark by default; the settings script switches to light if that was chosen.
-      className={cn("dark font-sans", geist.variable, geistMono.variable, courierPrime.variable)}
+      className={cn("dark font-sans", geist.variable, geistMono.variable, courierPrime.variable, fraunces.variable)}
       // The settings script below sets the theme class and accent before React hydrates.
       suppressHydrationWarning
     >

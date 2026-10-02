@@ -75,10 +75,10 @@ export default function Home() {
             shadcn CLI and make it yours.
           </p>
           <Link
-            href="/why"
+            href="/case-study"
             className="group inline-flex items-center gap-1 self-start text-sm font-medium"
           >
-            Why it works this way
+            Read the case study
             <ArrowRightIcon
               aria-hidden
               className="size-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
