@@ -67,7 +67,6 @@ export default function Home() {
     <PageShell sections={SECTIONS}>
       <section id="overview" aria-labelledby="overview-title" className="flex scroll-mt-24 flex-col gap-6">
         <div className="flex flex-col gap-3">
-          <p className="text-sm font-medium text-muted-foreground">Filter Bar</p>
           <h1 id="overview-title" className="max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
             A filtering framework for data-heavy products
           </h1>
