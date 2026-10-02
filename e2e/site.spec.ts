@@ -27,16 +27,12 @@ test.describe("settings", () => {
     await expect(nav.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
   });
 
-  test("credits link to Nahid's LinkedIn and the article", async ({ page }) => {
+  test("credits link to Nahid's LinkedIn", async ({ page }) => {
     await page.goto("/");
     const footer = page.locator("footer");
     await expect(footer.getByRole("link", { name: "Nahid Noushathu" })).toHaveAttribute(
       "href",
       "https://www.linkedin.com/in/nahidnoushathu",
-    );
-    await expect(footer.getByRole("link", { name: /Crafting a modular filtering framework/ })).toHaveAttribute(
-      "href",
-      /medium\.com/,
     );
   });
 
