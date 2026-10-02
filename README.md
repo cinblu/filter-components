@@ -11,6 +11,8 @@
 
 Plus the details: humanised date presets ("1 week ago") in one click, selected options that never jump under the cursor, an Apply step for heavy tables (or instant mode for light ones), filters in the URL, full keyboard support, and every size and colour as a CSS variable.
 
+**Live site and demo: [filter-components-nu.vercel.app](https://filter-components-nu.vercel.app)**
+
 The thinking behind it is in the article [Crafting a modular filtering framework for data-heavy applications](https://medium.com/design-bootcamp/crafting-a-modular-filtering-framework-for-data-heavy-applications-0f0a184645eb).
 
 ## Install
@@ -18,7 +20,7 @@ The thinking behind it is in the article [Crafting a modular filtering framework
 Requirements: React 19, Tailwind CSS v4, and shadcn/ui set up with a **Radix-based style** (for example `npx shadcn@latest init --base radix`). Base UI styles aren't supported yet.
 
 ```bash
-npx shadcn@latest add https://YOUR-SITE/r/filter-bar.json
+npx shadcn@latest add https://filter-components-nu.vercel.app/r/filter-bar.json
 ```
 
 This adds `components/filter-bar/`, the shadcn components it uses (button, calendar, command, dialog, input, popover, separator, tooltip), `date-fns`, `lucide-react`, and the `--fb-*` CSS variables. Chip tooltips need shadcn's `<TooltipProvider>` above the bar, usually in `app/layout.tsx`.
@@ -26,10 +28,8 @@ This adds `components/filter-bar/`, the shadcn components it uses (button, calen
 For client-side filtering with TanStack Table v8, add the adapter:
 
 ```bash
-npx shadcn@latest add https://YOUR-SITE/r/filter-bar-tanstack.json
+npx shadcn@latest add https://filter-components-nu.vercel.app/r/filter-bar-tanstack.json
 ```
-
-> Replace `YOUR-SITE` with wherever this project is deployed. The site's install commands always show the right address.
 
 ## Usage
 
@@ -85,11 +85,11 @@ const columnFilters = useMemo(() => toColumnFilters(filters.applied, definitions
 const table = useReactTable({ data, columns, state: { columnFilters }, /* … */ });
 ```
 
-The full API (filter definitions, `useFilters`, URL sync, the adapter, keyboard behaviour) is on the site's `/docs` page.
+The full API (filter definitions, `useFilters`, URL sync, the adapter, keyboard behaviour) is in the [docs](https://filter-components-nu.vercel.app/docs).
 
 ## Theming
 
-Everything is a CSS variable, installed with the component. The site's `/customise` page writes overrides for you.
+Everything is a CSS variable, installed with the component. The [customiser](https://filter-components-nu.vercel.app/customise) writes overrides for you.
 
 ```css
 :root {
