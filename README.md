@@ -2,7 +2,7 @@
 
 **A filtering framework for data-heavy products.** Filters people can see, find and undo, in one row above your data. Distributed as a [shadcn/ui](https://ui.shadcn.com) registry item, so you install the source and make it yours.
 
-![Filter Bar: a toolbar of filter chips above a table](.github/social-preview.png)
+![Filters Framework: a filtering framework for data-heavy products](.github/social-preview.png)
 
 - **Applied filters stay visible.** Every applied filter is a chip with its value, so nobody has to open a "Filters (3)" menu to remember why rows are missing.
 - **The sort stays in view.** The active sort is a chip too, visible however far a wide table scrolls.

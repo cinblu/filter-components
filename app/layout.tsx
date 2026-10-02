@@ -28,19 +28,19 @@ const description =
   "A filtering framework for data-heavy products: filters people can see, find and undo, in one row above your data. Install it with the shadcn CLI.";
 
 export const metadata: Metadata = {
-  title: { default: "Filter Bar: a filtering framework for data-heavy products", template: "%s · Filter Bar" },
+  title: { default: "Filters Framework: a filtering framework for data-heavy products", template: "%s · Filter Bar" },
   description,
   // Absolute URLs for the social image.
   metadataBase: new URL(siteUrl()),
   openGraph: {
     type: "website",
     siteName: "Filter Bar",
-    title: "Filter Bar: a filtering framework for data-heavy products",
+    title: "Filters Framework: a filtering framework for data-heavy products",
     description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Filter Bar: a filtering framework for data-heavy products",
+    title: "Filters Framework: a filtering framework for data-heavy products",
     description,
   },
 };
