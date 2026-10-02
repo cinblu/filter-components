@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-for (const path of ["/", "/demo", "/customise", "/docs", "/case-study"]) {
+for (const path of ["/", "/demo", "/customise", "/docs", "/why"]) {
   test(`${path} loads without console errors`, async ({ page }) => {
     const errors: string[] = [];
     page.on("console", (msg) => {

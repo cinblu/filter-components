@@ -33,7 +33,7 @@ export function GET() {
 ## Docs
 
 - [Docs](${SITE}/docs): API, filter definitions, URL sync, TanStack adapter, keyboard behaviour
-- [Case study](${SITE}/case-study): the problem, principles and design decisions
+- [Why it works this way](${SITE}/why): the problem, principles and design decisions
 - [Demo](${SITE}/demo): 2,000-row table with every filter type
 `;
   return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8" } });

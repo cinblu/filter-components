@@ -29,7 +29,7 @@ for (const colorScheme of ["light", "dark"] as const) {
       }, colorScheme);
     });
 
-    for (const path of ["/", "/customise", "/docs", "/case-study"]) {
+    for (const path of ["/", "/customise", "/docs", "/why"]) {
       test(`${path} page`, async ({ page }) => {
         await page.goto(path);
         await page.waitForLoadState("networkidle");

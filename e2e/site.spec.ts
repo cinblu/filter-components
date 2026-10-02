@@ -287,45 +287,13 @@ test.describe("ghost tour", () => {
   });
 });
 
-test.describe("case study and social image", () => {
-  test.use({ reducedMotion: "reduce" });
-
-  test("tells the story: impact, problems, principles, craft, system, outcome", async ({ page }) => {
-    await page.goto("/case-study");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Crafting a modular filtering framework for data-heavy products",
-    );
-    expect(await page.getByRole("heading", { level: 2 }).allTextContents()).toEqual([
-      "Impact",
-      "Context",
-      "What went wrong",
-      "Three principles",
-      "The craft in the details",
-      "Now a component system, for people and agents",
-      "Outcome",
-    ]);
-    await expect(page.getByRole("link", { name: /Read the original article/ })).toHaveAttribute(
-      "href",
-      /medium\.com\/design-bootcamp\/crafting-a-modular-filtering-framework/,
-    );
-    await expect(page.getByRole("link", { name: "Portfolio", exact: true })).toHaveAttribute(
-      "href",
-      "https://nahidnoushathu.framer.website",
-    );
-  });
-
-  test("/why redirects to the case study", async ({ page }) => {
+test.describe("why page and social image", () => {
+  test("tells the story and links the article", async ({ page }) => {
     await page.goto("/why");
-    await expect(page).toHaveURL(/\/case-study$/);
-  });
-
-  test("llms.txt describes the component for agents", async ({ request }) => {
-    const response = await request.get("/llms.txt");
-    expect(response.ok()).toBe(true);
-    const text = await response.text();
-    expect(text).toContain("# Filters Framework");
-    expect(text).toMatch(/\/r\/filter-bar\.json/);
-    expect(text).toContain('"@filters"');
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Why it works this way");
+    const article = page.getByRole("link", { name: /Read the full article/ }).first();
+    await expect(article).toHaveAttribute("href", /medium\.com\/design-bootcamp\/crafting-a-modular-filtering-framework/);
+    await expect(page.getByRole("figure")).toHaveCount(8);
   });
 
   test("pages carry a social image", async ({ page, request }) => {

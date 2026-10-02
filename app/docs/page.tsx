@@ -118,7 +118,7 @@ export default function DocsPage() {
             The Filter Bar is source you own: the CLI copies it into{" "}
             <code className="font-mono text-xs">components/filter-bar/</code>, and you can edit
             anything. This page covers the API and why its details work the way they do. For the
-            story behind the pattern, see the <Link href="/case-study">case study</Link>.
+            story behind the pattern, see <Link href="/why">Why it works this way</Link>.
           </p>
         </header>
 
